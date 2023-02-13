@@ -1,0 +1,32 @@
+{
+    "id": "EE923C6A",
+    "path": null,
+    "project_path": null,
+    "type": "r_dataframe",
+    "hash": "0",
+    "contents": "",
+    "dirty": false,
+    "created": 1657916928000.0,
+    "source_on_save": false,
+    "relative_order": 6,
+    "properties": {
+        "expression": "who_dist_2001_2017",
+        "caption": "who_dist_2001_2017",
+        "totalObservations": 17000,
+        "displayedObservations": 17000,
+        "variables": 17,
+        "cacheKey": "274FCE61",
+        "object": "who_dist_2001_2017",
+        "environment": "",
+        "contentUrl": "grid_resource/gridviewer.html?env=&obj=who_dist_2001_2017&cache_key=274FCE61&max_cols=50",
+        "preview": 0
+    },
+    "folds": "",
+    "lastKnownWriteTime": 0,
+    "encoding": "",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1657916928000,
+    "read_only": false,
+    "read_only_alternatives": []
+}

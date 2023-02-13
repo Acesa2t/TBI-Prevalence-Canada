@@ -1,0 +1,32 @@
+{
+    "id": "1D1031E5",
+    "path": null,
+    "project_path": null,
+    "type": "r_dataframe",
+    "hash": "0",
+    "contents": "",
+    "dirty": false,
+    "created": 1657916928711.0,
+    "source_on_save": false,
+    "relative_order": 9,
+    "properties": {
+        "expression": "bind_years",
+        "caption": "bind_years",
+        "totalObservations": 50000,
+        "displayedObservations": 50000,
+        "variables": 17,
+        "cacheKey": "C7F26088",
+        "object": "bind_years",
+        "environment": "",
+        "contentUrl": "grid_resource/gridviewer.html?env=&obj=bind_years&cache_key=C7F26088&max_cols=50",
+        "preview": 0
+    },
+    "folds": "",
+    "lastKnownWriteTime": 4209067951059,
+    "encoding": "",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1657916928711,
+    "read_only": false,
+    "read_only_alternatives": []
+}
