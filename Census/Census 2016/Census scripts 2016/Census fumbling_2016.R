@@ -53,3 +53,5 @@ for(i in 1:nsheets){
 
 #Export back into Excel
 write_xlsx(lc2, path = "/Users/ajordan/OneDrive - McGill University/A TB/Analyses/TB prev measures/census_data_fumble_2016.xlsx")
+
+# Next script census_rep
