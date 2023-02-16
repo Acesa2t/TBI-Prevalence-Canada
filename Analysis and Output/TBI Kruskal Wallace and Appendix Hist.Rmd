@@ -1,5 +1,5 @@
 ---
-title: "TBI Prevalence Figures"
+title: "Kruskal_Wallace Stat Test and Histogram for Manuscript"
 output:
   html_document: default
   pdf_document: default
@@ -13,6 +13,7 @@ output:
 library(tidyverse)
 library(gt)
 library(readxl)
+library(stats)
 
 ```
 
@@ -35,9 +36,7 @@ tb_inc <- readRDS("incidence.rds")
 colnames(tb_inc) <- c("ISO3", "WHO_Region", "e_inc_100k")
 tb_inc <- tb_inc%>%select(-WHO_Region)
 
-# countries_168 <- read_xlsx("/Users/ajordan/Library/CloudStorage/OneDrive-McGillUniversity/LTBI-Aust-CEA-master/Data/countries 168.xlsx")
-# 
-# countries_excluded <- read_xlsx("/Users/ajordan/Library/CloudStorage/OneDrive-McGillUniversity/LTBI-Aust-CEA-master/Data/countries 168.xlsx", sheet = 2)
+countries_excluded <- read_xlsx("/Users/ajordan/Library/CloudStorage/OneDrive-McGillUniversity/LTBI-Aust-CEA-master/Data/countries 168.xlsx", sheet = 2)
 ```
 
 
@@ -87,7 +86,8 @@ grouping_function <- function(df){
    mutate(BPLP = ifelse(str_detect(BPLP, "Hong Kong"), "Hong Kong", 
                         ifelse(str_detect(BPLP, "United States"), "United States of America", BPLP)))
 
-tbi_graph_aarp
+tbi_graph_168 <- tbi_graph_aarp%>%
+                  filter(ISO3!%in%c(countries_excluded$ISO3))
 }
 
 tbi_2001_grouped <- grouping_function(tbi_2001)
@@ -102,15 +102,13 @@ tbi_2016_grouped <- na.omit(grouping_function(tbi_2016))
 tbi_all_census_years <- rbind(tbi_2001_grouped, tbi_2006_grouped, tbi_2011_grouped, tbi_2016_grouped)
 View(tbi_all_census_years)
 
-#exclusions <- tbi_all_census_years%>%
- #  filter(!ISO3%in%c(countries_168$ISO3))
-
 ```
 
 
 
 KWs-2001 and 2016
 ```{r}
+# Change the ISO3 to do KW for each desired country
 country_select <- tbi_all_census_years%>%
   filter(ISO3=="PHL")
 
@@ -134,51 +132,10 @@ country_ltbp_combined_long <- country_ltbp_combined%>%
 
 View(country_ltbp_combined_long)
 
-library(rstatix)
 kruskal.test(data=country_ltbp_combined_long,tbi_prev~CNSY)
-mood.medtest(data=country_ltbp_combined_long,tbi_prev~CNSY)
 ```
 
-
-```{r}
-
-aarp_select <- tbi_all_census_years%>%
-  filter(AARP_BANDS=="AARP 35-54"  & ISO3!="CAN")
-
-ltbp_set <- as.data.frame(t(mapply("+",aarp_select$LTBP)))
-View(ltbp_set)
-
-aarp_ltbp_combined <- cbind(aarp_select,ltbp_set)
-
-View(aarp_ltbp_combined)
-
-#remove LTBP column
-aarp_ltbp_combined_long <- aarp_ltbp_combined%>%
-  select(-LTBP)%>%
-  pivot_longer(cols = V1:V200,
-               names_to = "former_col_names",
-               values_to = "LTBP_values")%>%
-  group_by(CNSY,former_col_names)%>%
-  summarise(LTBP_sum  = sum(LTBP_values),
-            NUMP = sum(NUMP))%>%
-  mutate(tbi_prev = LTBP_sum/NUMP)
-
-View(aarp_ltbp_combined_long)
-
-library(rstatix)
-kruskal.test(data=aarp_ltbp_combined_long,tbi_prev~CNSY)
-mood.medtest(data=aarp_ltbp_combined_long,tbi_prev~CNSY)
-# aarp_ltbp_combined_long%>%
-#   group_by(inc_band_per100k)%>%
-#   kruskal_test(tbi_)
-
-# ggplot(aarp_ltbp_combined_long, aes(tbi_prev))+
-#   geom_histogram()+
-#   facet_wrap(.~CNSY)
-
-```
-
-Probability of Infection Histogram
+Probability of Infection Histogram for Figure S1
 
 ```{r}
 

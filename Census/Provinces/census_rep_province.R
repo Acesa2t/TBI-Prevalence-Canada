@@ -46,17 +46,13 @@ unique(census_cols$year_of_arrival)
 
 # Replicate year_of_arrival
 
-# if(){}
-# else if(){}
-# else
-
   # Replicate rows to get number of desired rows to fill in
 census_cols_expanded <- census_cols[rep(row.names(census_cols), 
                                         ifelse(census_cols$year_of_arrival=="Before 1981",1,
                                                ifelse(census_cols$year_of_arrival == "1981 to 1990" | census_cols$year_of_arrival == "1991 to 2000" | census_cols$year_of_arrival == "2001 to 2010", 10, ifelse(census_cols$year_of_arrival == "2011 to 2016", 6, 1) ))),]
 
 View(census_cols_expanded)
-  # Fill in conditionally-will include people who were not alive
+# Fill in conditionally-will include people who were not alive
 #rep seq
 c_rep_year<- census_cols_expanded%>%mutate(
   yarp = ifelse(year_of_arrival == "Before 1981",
