@@ -1,0 +1,227 @@
+---
+title: "TBI Prevalence Figures"
+output:
+  html_document: default
+  pdf_document: default
+  word_document: default
+---
+
+```{r}
+# knitr::opts_chunk$set(echo = TRUE)
+# rm(list = ls(all.names = TRUE))
+# gc()
+library(tidyverse)
+library(gt)
+library(readxl)
+
+```
+
+## Read in Files
+
+```{r}
+tbi_2001 <- readRDS("estimates_2001_iso3_v1.rds")
+View(tbi_2001)
+
+tbi_2006 <- readRDS("estimates_2006_iso3_v1.rds")
+
+
+tbi_2011 <- readRDS("2011estimates_iso3_v1.rds")
+
+
+tbi_2016 <- readRDS("2016 estimates_iso3.rds")
+#View(tbi_2016$LTBP)
+
+tb_inc <- readRDS("incidence.rds")
+colnames(tb_inc) <- c("ISO3", "WHO_Region", "e_inc_100k")
+tb_inc <- tb_inc%>%select(-WHO_Region)
+
+# countries_168 <- read_xlsx("/Users/ajordan/Library/CloudStorage/OneDrive-McGillUniversity/LTBI-Aust-CEA-master/Data/countries 168.xlsx")
+# 
+# countries_excluded <- read_xlsx("/Users/ajordan/Library/CloudStorage/OneDrive-McGillUniversity/LTBI-Aust-CEA-master/Data/countries 168.xlsx", sheet = 2)
+```
+
+
+
+## Apply Function to Files
+
+
+```{r}
+grouping_function <- function(df){
+  
+  tbi_data <- merge(df, tb_inc, by = "ISO3")
+# Less bands
+  tbi_data_bands <- tbi_data%>%
+    mutate(inc_band_per100k = ifelse(
+      e_inc_100k < 10, "0-9 per 100,000 persons", ifelse(
+        e_inc_100k >= 10 & e_inc_100k < 50, "10-49 per 100,000 persons", ifelse(
+          e_inc_100k >= 50 & e_inc_100k < 100, "50-99 per 100,000 persons", ifelse(
+            e_inc_100k >= 100 & e_inc_100k < 200, "100-199 per 100,000 persons",ifelse(
+              e_inc_100k >= 200 & e_inc_100k <= 1000, "200+ per 100,000 persons", "No value"))))))
+  
+  tbi_data_bands$inc_band_per100k <- factor(tbi_data_bands$inc_band_per100k,
+                                            levels = c("0-9 per 100,000 persons",
+                                              "10-49 per 100,000 persons",
+                                                       "50-99 per 100,000 persons",
+                                                       "100-199 per 100,000 persons",
+                                                       "200+ per 100,000 persons"))
+  
+  tbi_age_groups <- tbi_data_bands%>%
+    mutate(AGE_BANDS = ifelse(
+      AGEP < 15, "0-14", ifelse(
+        AGEP >= 15 & AGEP < 35, "15-34", ifelse(
+          AGEP >= 35 & AGEP < 55, "35-54",ifelse(
+            AGEP >= 55 & AGEP < 75, "55-74",ifelse(
+              AGEP >= 75 & AGEP <= 200, "75+", "No value"))))),
+      AARP = YARP-YOBP)
+  
+  
+  
+ tbi_graph_aarp <- tbi_age_groups%>%
+  mutate(AARP_BANDS = ifelse(
+    AARP < 15, "AARP 0-14", ifelse(
+      AARP >= 15 & AARP < 35, "AARP 15-34", ifelse(
+        AARP >= 35 & AARP < 55, "AARP 35-54",ifelse(
+          AARP >= 55 & AARP <= 74, "AARP 55-74", ifelse(
+            AARP >= 75 & AARP <= 200, "AARP 75+", "No value"))))))%>%
+   mutate(BPLP = recode(BPLP, `China, People's Republic of`="China"))%>%
+   mutate(BPLP = ifelse(str_detect(BPLP, "Hong Kong"), "Hong Kong", 
+                        ifelse(str_detect(BPLP, "United States"), "United States of America", BPLP)))
+
+tbi_graph_aarp
+}
+
+tbi_2001_grouped <- grouping_function(tbi_2001)
+
+tbi_2006_grouped <- grouping_function(tbi_2006)
+
+tbi_2011_grouped <- grouping_function(tbi_2011)
+
+tbi_2016_grouped <- na.omit(grouping_function(tbi_2016))
+
+#View(tbi_2016_grouped)
+tbi_all_census_years <- rbind(tbi_2001_grouped, tbi_2006_grouped, tbi_2011_grouped, tbi_2016_grouped)
+View(tbi_all_census_years)
+
+#exclusions <- tbi_all_census_years%>%
+ #  filter(!ISO3%in%c(countries_168$ISO3))
+
+```
+
+
+
+KWs-2001 and 2016
+```{r}
+country_select <- tbi_all_census_years%>%
+  filter(ISO3=="PHL")
+
+ltbp_set <- as.data.frame(t(mapply("+",country_select$LTBP)))
+View(ltbp_set)
+
+country_ltbp_combined <- cbind(country_select,ltbp_set)
+
+View(country_ltbp_combined)
+
+#remove LTBP column
+country_ltbp_combined_long <- country_ltbp_combined%>%
+  select(-LTBP)%>%
+  pivot_longer(cols = V1:V200,
+               names_to = "former_col_names",
+               values_to = "LTBP_values")%>%
+  group_by(CNSY,former_col_names)%>%
+  summarise(LTBP_sum  = sum(LTBP_values),
+            NUMP = sum(NUMP))%>%
+  mutate(tbi_prev = LTBP_sum/NUMP)
+
+View(country_ltbp_combined_long)
+
+library(rstatix)
+kruskal.test(data=country_ltbp_combined_long,tbi_prev~CNSY)
+mood.medtest(data=country_ltbp_combined_long,tbi_prev~CNSY)
+```
+
+
+```{r}
+
+aarp_select <- tbi_all_census_years%>%
+  filter(AARP_BANDS=="AARP 35-54"  & ISO3!="CAN")
+
+ltbp_set <- as.data.frame(t(mapply("+",aarp_select$LTBP)))
+View(ltbp_set)
+
+aarp_ltbp_combined <- cbind(aarp_select,ltbp_set)
+
+View(aarp_ltbp_combined)
+
+#remove LTBP column
+aarp_ltbp_combined_long <- aarp_ltbp_combined%>%
+  select(-LTBP)%>%
+  pivot_longer(cols = V1:V200,
+               names_to = "former_col_names",
+               values_to = "LTBP_values")%>%
+  group_by(CNSY,former_col_names)%>%
+  summarise(LTBP_sum  = sum(LTBP_values),
+            NUMP = sum(NUMP))%>%
+  mutate(tbi_prev = LTBP_sum/NUMP)
+
+View(aarp_ltbp_combined_long)
+
+library(rstatix)
+kruskal.test(data=aarp_ltbp_combined_long,tbi_prev~CNSY)
+mood.medtest(data=aarp_ltbp_combined_long,tbi_prev~CNSY)
+# aarp_ltbp_combined_long%>%
+#   group_by(inc_band_per100k)%>%
+#   kruskal_test(tbi_)
+
+# ggplot(aarp_ltbp_combined_long, aes(tbi_prev))+
+#   geom_histogram()+
+#   facet_wrap(.~CNSY)
+
+```
+
+Probability of Infection Histogram
+
+```{r}
+
+country_select <- tbi_all_census_years%>%
+  filter(ISO3=="PHL" & YARP == "2000" & YOBP=="1996" & CNSY == "2016")
+
+ltbp_set <- as.data.frame(t(mapply("+",country_select$LTBP)))
+View(ltbp_set)
+
+country_ltbp_combined <- cbind(country_select,ltbp_set)
+
+View(country_ltbp_combined)
+
+#remove LTBP column
+country_ltbp_combined_hist <- country_ltbp_combined%>%
+  select(-LTBP)%>%
+  pivot_longer(cols = V1:V200,
+               names_to = "former_col_names",
+               values_to = "LTBP_values")%>%
+  group_by(former_col_names)%>%
+  summarise(LTBP_sum  = sum(LTBP_values),
+            NUMP = sum(NUMP))%>%
+  mutate(prob_inf = LTBP_sum/NUMP)
+
+View(country_ltbp_combined_hist)
+
+country_ltbp_combined_hist%>%
+  ggplot(aes(prob_inf))+
+  geom_histogram(fill="blue")+
+  geom_vline(xintercept = 0.06, linetype = "dashed")+
+  geom_vline(xintercept = 0.08, linetype = "dashed")+
+  labs(x = "Probability of Infection",
+       y = "Frequency")+
+  theme(text = element_text(size = 13))
+
+country_ltbp_combined_hist%>%
+  ggplot(aes(prob_inf))+
+  geom_histogram(fill="blue")+
+  labs(x = "Probability of Infection",
+       y = "Frequency")+
+  theme(text = element_text(size = 16),
+        axis.text = element_text(size = 13))
+  
+
+```
+
