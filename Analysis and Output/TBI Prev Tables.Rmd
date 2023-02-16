@@ -13,6 +13,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(gt)
 library(readxl)
+library(spatstat)
 ```
 
 ## Read in Files
@@ -102,157 +103,69 @@ tbi_2011_grouped <- grouping_function(tbi_2011)
 
 tbi_2016_grouped <- na.omit(grouping_function(tbi_2016))
 
-View(tbi_2016_grouped)
+#View(tbi_2016_grouped)
 tbi_all_census_years <- rbind(tbi_2001_grouped, tbi_2006_grouped, tbi_2011_grouped, tbi_2016_grouped)
 View(tbi_all_census_years)
 
 
 ```
 
-Median Age at Immigration
 
+# Population Data
+## Population tables made by pulling data directly from census unless certain calculations need to be made
+
+Median and IQR-Age at Immigration and Age During Census Year
 ```{r}
-library(spatstat)
-
-# tbi_all_census_years%>%
-#   group_by(CNSY)%>%
-#   summarize(weighted.median(AARP, NUMP),
-#             weighted.quantile(AARP, NUMP, probs = 0.25),
-#             weighted.quantile(AARP, NUMP, probs = 0.75))
-
-tbi_all_census_years%>%
-  filter(YARP >= 2015)%>%
-  #group_by(inc_band_per100k)%>%
-  summarize(tbi_prev_low = round(quantile(Reduce("+",replace_na(LTBP, replace = 0)), 0.025)/sum(NUMP)*100,0),
-            tbi_prev_med = round(median(Reduce("+",replace_na(LTBP, replace = 0)))/sum(NUMP)*100,0),
-tbi_prev_high = round(quantile(Reduce("+",replace_na(LTBP, replace = 0)), 0.975)/sum(NUMP)*100,0))
-```
-
-
-## Immigration Data Section
-
-When shaping data about immigration, the Canadian TB reports and the Canadian TB Standards already tell us that over time, we're seeing more arrivals from high-incidence countries. We also know that 50% of foreign-born persons with TB disease are from five countries (China, India, Pakistan, Viet Nam, and Philippines).
-
-What we DON'T know much about:
-- Time of immigration
-- Age at immigration
-
-*While we do know about immigration from high vs low-incidence countries, we don't have data on prevalence
-
-# Color Vectors and Summary Code Sample
-```{r}
-
-  # color_vec_countries <- c("India" = "#00FF00",
-  #                "China" = "#006600",
-  #                "United Kingdom" = "#003300",
-  #                "United States of America" = "#006600",
-  #                 "Hong Kong" = "#CC9900",
-  #                "Philippines" = "#FFFF00",
-  #                "Poland" = "#FF6600",
-  #                "Germany" = "#660000",
-  #                 "Portugal" = "#FF3333",
-  #                 "Italy" = "#00BFC4",
-  #                "Viet Nam" = "#6600CC",
-  #                "Pakistan" = "#003333",
-  #                "Iran" ="#CC3399")
-
-# tbi_overall <- na.omit(tbi)%>%
-#   summarise(tbi_prev = median(Reduce("+", LTBP))/sum(NUMP),
-#             tbi_prev_iqr_low = quantile(Reduce("+",LTBP), 0.25)/sum(NUMP),
-#             tbi_prev_iqr_high = quantile(Reduce("+",LTBP), 0.75)/sum(NUMP),
-#             tbi_prev_ui_low = quantile(Reduce("+",LTBP), 0.025)/sum(NUMP),
-#             tbi_prev_ui_high = quantile(Reduce("+",LTBP), 0.975)/sum(NUMP))
-# View(tbi_overall)
-# 
-# tbi_iso3 <- na.omit(tbi)%>%
-#   group_by(ISO3)%>%
-#   summarise(tbi_prev = median(Reduce("+",LTBP))/sum(NUMP),
-#             tbi_prev_iqr_low = quantile(Reduce("+",LTBP), 0.25)/sum(NUMP),
-#             tbi_prev_iqr_high = quantile(Reduce("+",LTBP), 0.75)/sum(NUMP),
-#             tbi_prev_ui_low = quantile(Reduce("+",LTBP), 0.025)/sum(NUMP),
-#             tbi_prev_ui_high = quantile(Reduce("+",LTBP), 0.975)/sum(NUMP))
-# 
-# View(tbi_iso3)
-
-bb <- tbi_all_census_years%>%
-  filter(ISO3=="MDG")%>%
+summary_aarp <- tbi_all_census_years%>%
   group_by(CNSY)%>%
-  summarise(number_people = sum(NUMP),
-            tbi_prev_low = round(quantile(Reduce("+",replace_na(LTBP, replace = 0)), 0.25)/sum(NUMP)*100,0),
-            tbi_prev_med = round(median(Reduce("+",replace_na(LTBP, replace = 0)))/sum(NUMP)*100,0),
-tbi_prev_high = round(quantile(Reduce("+",replace_na(LTBP, replace = 0)), 0.75)/sum(NUMP)*100,0))%>%
-  filter(number_people < 1000)
+  summarize(median_aarp = weighted.median(AARP, NUMP),
+            aarp_25 = weighted.quantile(AARP, NUMP, probs = 0.25),
+            aarp_75 = weighted.quantile(AARP, NUMP, probs = 0.75))
 
-View(bb)
-sum(bb$number_people)
-
-
-cc <- tbi_all_census_years%>%
-  filter(CNSY=="2016" & ISO3=="PHL" & YARP =="2000" & YOBP=="1996")%>%
-  summarise(number_people = sum(NUMP),
-            tbi_prev_low = round(quantile(Reduce("+",replace_na(LTBP, replace = 0)), 0.25)/sum(NUMP)*100,0),
-            tbi_prev_med = round(median(Reduce("+",replace_na(LTBP, replace = 0)))/sum(NUMP)*100,0),
-tbi_prev_high = round(quantile(Reduce("+",replace_na(LTBP, replace = 0)), 0.75)/sum(NUMP)*100,0))
-
-cc
-```
-Some Population Calculations
-```{r}
-tbi_all_census_years%>%
+summary_agep <-tbi_all_census_years%>%
   group_by(CNSY)%>%
-  summarize(
-            IQR(AARP))
+  summarize(median_agep = weighted.median(AGEP, NUMP),
+            agep_25 = weighted.quantile(AGEP, NUMP, probs = 0.25),
+            agep_75 = weighted.quantile(AGEP, NUMP, probs = 0.75))
 
-tbi_all_census_years%>%
+```
+TBI Prevalence Overall
+```{r}
+overall_prevalence <- tbi_all_census_years%>%
   group_by(CNSY)%>%
   summarize(tbi_prev = round(median(Reduce("+",replace_na(LTBP, replace = 0)))/sum(NUMP)*100,0),
     tbi_prev_ui_low = round(quantile(Reduce("+",replace_na(LTBP, replace = 0)), 0.025)/sum(NUMP)*100,0),
     tbi_prev_ui_high = round(quantile(Reduce("+",replace_na(LTBP, replace = 0)), 0.975)/sum(NUMP)*100,0))
 ```
 
-
-# Top 10 Common Countries of Origin-Number Living in Canada
+Number Living in Canada by Age at Immigration
 ```{r top10, figures-side, fig.show="hold", out.width="50%", echo=FALSE}
 
-tbi_yarp_top10_func <- function(df, CNSY){
+aarp_NUMP_func <- function(df, CNSY){
   top10_total <- na.omit(df)%>%
-    group_by(BPLP)%>%
+    group_by(CNSY, AARP_BANDS)%>%
     summarise(NUMP=round(sum(NUMP), 0))%>%
     arrange(desc(NUMP))%>%
     slice_head(n=10)
   
-  names(top10_total)[names(top10_total) == 'BPLP'] <- str_c("BPLP", CNSY)
+  names(top10_total)[names(top10_total) == 'AARP_BANDS'] <- str_c("AARP_BANDS", CNSY)
   names(top10_total)[names(top10_total) == 'NUMP'] <- str_c("NUMP", CNSY)
   top10_total
-  
-  # View(top10_total)
-  # 
-  # top10_total %>%
-  # gt() %>%
-  # tab_header(title = html(str_c("TBI Prevalence Among Immigrants from <br>Top 10 Common Countries of Origin",CNSY)))%>%
-  #   fmt_number(columns = NUMP,
-  #              sep_mark = ",",
-  #              drop_trailing_zeros = T,
-  #              drop_trailing_dec_mark = T)%>%
-  #   cols_label(NUMP = html("Number Living <br>in Canada (N)"))
-
 }
 
-# pop_coo_by_census <- cbind(tbi_yarp_top10_func(tbi_2001_grouped, " in 2001"),
-# 
-# tbi_yarp_top10_func(tbi_2006_grouped, " in 2006"),
-# 
-# tbi_yarp_top10_func(tbi_2011_grouped, " in 2011"),
-# 
-# tbi_yarp_top10_func(tbi_2016_grouped, " in 2016"))
-# 
-# pop_coo_by_census <- pop_coo_by_census%>%
-#   arrange(desc(`NUMP in 2016`))
-# 
-# pop_coo_by_census
+pop_aarp_by_census <- cbind(aarp_NUMP_func(tbi_2001_grouped, " in 2001"),
+
+aarp_NUMP_func(tbi_2006_grouped, " in 2006"),
+
+aarp_NUMP_func(tbi_2011_grouped, " in 2011"),
+
+aarp_NUMP_func(tbi_2016_grouped, " in 2016"))
+
+pop_aarp_by_census
+
 ```
 
-# Top 10 Common Countries of Origin-Prevalence
+# Prevalence by Top 10 Common Countries of Origin 
 ```{r top10, figures-side, fig.show="hold", out.width="50%", echo=FALSE}
 
 tbi_yarp_top10_func <- function(df, CNSY){
@@ -260,8 +173,6 @@ tbi_yarp_top10_func <- function(df, CNSY){
     group_by(BPLP)%>%
   summarise(NUMP=sum(NUMP),
     tbi_prev = round(median(Reduce("+",LTBP))/sum(NUMP)*100,0),
-    tbi_prev_iqr_low = round(quantile(Reduce("+",LTBP), 0.25)/sum(NUMP)*100,0),
-    tbi_prev_iqr_high = round(quantile(Reduce("+",LTBP), 0.75)/sum(NUMP)*100,0),
     tbi_prev_95_low = round(quantile(Reduce("+",LTBP), 0.025)/sum(NUMP)*100,0),
     tbi_prev_95_high = round(quantile(Reduce("+",LTBP), 0.975)/sum(NUMP)*100,0))%>%
     arrange(desc(NUMP))%>%
@@ -271,376 +182,125 @@ tbi_yarp_top10_func <- function(df, CNSY){
   
   top10_total <- top10_total1%>%select(BPLP, 
                             tbi_prev,
-                            tbi_prev_iqr_low,
-                            tbi_prev_iqr_high,
                             tbi_prev_95_low,
                             tbi_prev_95_high)
   
    names(top10_total)[names(top10_total) == 'BPLP'] <- str_c("BPLP", CNSY)
   top10_total
-  # top10_total %>%
-  # gt() %>%
-  # tab_header(title = html(str_c("TBI Prevalence Among Immigrants from <br>Top 10 Common Countries of Origin",CNSY)))
 
 }
-# tbi_prev_coo_by_census <- cbind(tbi_yarp_top10_func(tbi_2001_grouped, " in 2001"),
-# 
-# tbi_yarp_top10_func(tbi_2006_grouped, " in 2006"),
-# 
-# tbi_yarp_top10_func(tbi_2011_grouped, " in 2011"),
-# 
-# tbi_yarp_top10_func(tbi_2016_grouped, " in 2016"))
-# 
-# tbi_prev_coo_by_census
+tbi_prev_coo_by_census <- cbind(tbi_yarp_top10_func(tbi_2001_grouped, " in 2001"),
 
-```
-##################################################
-```{r}
+tbi_yarp_top10_func(tbi_2006_grouped, " in 2006"),
 
+tbi_yarp_top10_func(tbi_2011_grouped, " in 2011"),
 
-# top10_total1 <- na.omit(tbi_2016_grouped)%>%
-#   group_by(BPLP)%>%
-# summarise(NUMP=sum(NUMP),
-#   LTBP = mapply(sum,replace_na(LTBP,0)))%>%
-#           arrange(desc(NUMP))%>%
-#   slice_head(n=10)
-# 
-# View(top10_total1)
-# 
-# View(tbi_all_census_years)
-# 
-# # USA
-# aaa <- na.omit(tbi_all_census_years)%>%
-#   filter(CNSY=="2016" & ISO3=="USA")
-# 
-# View(aaa)
-# 
-# #tbi_all_census_years%>%
-#  # filter(CNSY=="2016" & ISO3=="USA")%>%
-#   #summarise(NUMP=sum(NUMP))
-# 
-# bbb <- t(mapply("+",aaa$LTBP))
-# #View(bbb)
-# bbb
-# hist_usa_prep <- t(as.data.frame(bbb)%>%
-# summarize(across(everything(), sum)))
-# 
-# hist_usa <- as.data.frame(hist_usa_prep)%>%
-#   mutate(NUMP=253700,
-#          tbi_prev = V1/NUMP,
-#          LTBP = round(V1,0))
-# 
-# hist_usa
-# 
-# ggplot(hist_usa, aes(tbi_prev))+
-#   geom_histogram()
-# 
-# # CHN
-# aaa <- na.omit(tbi_all_census_years)%>%
-#   filter(CNSY=="2016" & ISO3=="CHN")
-# 
-# View(aaa)
-# 
-# tbi_all_census_years%>%filter(CNSY=="2016" & ISO3=="CHN")%>%summarise(NUMP=sum(NUMP))
-# 
-# bbb <- t(mapply("+",aaa$LTBP))
-# #View(bbb)
-# bbb
-# hist_CHN_prep <- t(as.data.frame(bbb)%>%
-# summarize(across(everything(), sum)))
-# 
-# hist_CHN <- as.data.frame(hist_CHN_prep)%>%
-#   mutate(NUMP=649260,
-#          tbi_prev = V1/NUMP,
-#          LTBP = round(V1,0))
-# 
-# hist_CHN
-# 
-# ggplot(hist_CHN, aes(tbi_prev))+
-#   geom_histogram()
-```
+tbi_yarp_top10_func(tbi_2016_grouped, " in 2016"))
 
-All Countries
-```{r}
-tbi_yarp_all_coo_func <- function(df, CNSY){
-  all_coo_total1 <- na.omit(df)%>%
-    group_by(BPLP)%>%
-  summarise(NUMP=sum(NUMP),
-    tbi_prev = round(median(Reduce("+",LTBP))/sum(NUMP)*100,0),
-    tbi_prev_iqr_low = round(quantile(Reduce("+",LTBP), 0.25)/sum(NUMP)*100,0),
-    tbi_prev_iqr_high = round(quantile(Reduce("+",LTBP), 0.75)/sum(NUMP)*100,0),
-    tbi_prev_95_low = round(quantile(Reduce("+",LTBP), 0.025)/sum(NUMP)*100,0),
-    tbi_prev_95_high = round(quantile(Reduce("+",LTBP), 0.975)/sum(NUMP)*100,0))
-  
-
-  
-  all_coo_total <- all_coo_total1%>%select(BPLP, 
-                            tbi_prev,
-                            tbi_prev_iqr_low,
-                            tbi_prev_iqr_high,
-                            tbi_prev_95_low,
-                            tbi_prev_95_high)
-  
-   names(all_coo_total)[names(all_coo_total) == 'BPLP'] <- str_c("BPLP", CNSY)
-  all_coo_total
-  # top10_total %>%
-  # gt() %>%
-  # tab_header(title = html(str_c("TBI Prevalence Among Immigrants from <br>Top 10 Common Countries of Origin",CNSY)))
-
-}
-
-# tbi_prev_all_coo_by_census <- cbind(tbi_yarp_all_coo_func(tbi_2001_grouped, " in 2001"),
-# 
-# tbi_yarp_all_coo_func(tbi_2006_grouped, " in 2006"),
-# 
-# tbi_yarp_all_coo_func(tbi_2011_grouped, " in 2011"),
-# 
-# tbi_yarp_all_coo_func(tbi_2016_grouped, " in 2016"))
-```
-
-
-# Top 10 Common Countries-Age and Year of Immigration
-```{r top10again, figures-side, fig.show="hold", out.width="50%", echo=FALSE, include=FALSE}
-#   tbi_top10 <- tbi_all_census_years%>%
-#     group_by(CNSY, BPLP)%>%
-#     summarise(NUMP=sum(NUMP),
-#               tbi_prev = (sum(LTBP)/sum(NUMP))*100,
-#               tbi_prev_hi = (sum(LTBP.high)/sum(NUMP))*100,
-#               tbi_prev_low = (sum(LTBP.low)/sum(NUMP))*100)%>%
-#   arrange(desc(NUMP))%>%
-#   slice_head(n=13)
-# 
-#   View(tbi_top10)
-#   
-#  tbi_top_10_tabprep <- pivot_wider(tbi_top10, names_from = "CNSY", values_from = c("NUMP", "tbi_prev"))
-# tbi_top_10_tabprep <- tbi_top_10_tabprep[,c(1,2,6,3,7,4,8,5,9)]
-# #View(tbi_top_10_tabprep)
-# 
-#   tbi_top_10_tabprep %>%
-#   gt() %>%
-#   tab_header(title = html(str_c("TBI Prevalence Among Immigrants from <br>Top 10 Common Countries of Origin")))
+tbi_prev_coo_by_census
 
 ```
 
 
-# Incidence Bands-Number Living in Canada
+
+# TB Disease Incidence in Country of Origin-Number Living in Canada, Proportion, and TBI Prevalence
 ```{r inc, figures-side, fig.show="hold", out.width="50%", echo=FALSE}
 
 add_pop <- tbi_all_census_years%>%
     group_by(CNSY)%>%
   mutate(tot_pop = sum(NUMP))
 
-View(add_pop)
+#View(add_pop)
 
-  tbi_inc_tabprep <- unique(add_pop %>%
+tbi_inc_tabprep <- unique(add_pop %>%
                               filter(NUMP > 0)%>%
     group_by(CNSY, inc_band_per100k)%>%
     summarise(pop_tot_group = sum(NUMP),
       proportion_pop=round((sum(NUMP)/tot_pop)*100, 2),
                   tbi_prev = round(median(Reduce("+",replace_na(LTBP, replace = 0)))/sum(NUMP)*100,0),
-    tbi_prev_iqr_low = round(quantile(Reduce("+",replace_na(LTBP, replace = 0)), 0.25)/sum(NUMP)*100,0),
-    tbi_prev_iqr_high = round(quantile(Reduce("+",replace_na(LTBP, replace = 0)), 0.75)/sum(NUMP)*100,0),
     tbi_prev_95_low = round(quantile(Reduce("+",replace_na(LTBP, replace = 0)), 0.025)/sum(NUMP)*100,0),
     tbi_prev_95_high = round(quantile(Reduce("+",replace_na(LTBP, replace = 0)), 0.975)/sum(NUMP)*100,0)))
 
 
-  View(tbi_inc_tabprep)
-#   
-#  tbi_inc_tabprep <- pivot_wider(tbi_inc_tabprep, names_from = "CNSY", values_from = c("proportion_pop", "tbi_prev"))
-# View( tbi_inc_tabprep)
-# 
-#  class(tbi_inc_tabprep$inc_band_per100k)
-#  class(tbi_inc_tabprep$proportion_pop_2001)
-#  
-#  tbi_inc_tabprep[,1:9] <- lapply(tbi_inc_tabprep[,1:9], as.factor)
-#  
-#  tbi_inc_tab <- ungroup(tbi_inc_tabprep) %>%
-#   gt() %>%
-#      cols_label(
-#        proportion_pop_2001 = md("Percentage of Population in 2001 (%)"),
-#        proportion_pop_2006 = md("Percentage of Population in 2006 (%)"),
-#        proportion_pop_2011 = md("Percentage of Population in 2011 (%)"),
-#        proportion_pop_2016 = md("Percentage of Population in 2016 (%)"),
-#        tbi_prev_2001 = md("TBI Prevalence in 2001 (%)"),
-#        tbi_prev_2006 = md("TBI Prevalence in 2006 (%)"),
-#        tbi_prev_2011 = md("TBI Prevalence in 2011 (%)"),
-#        tbi_prev_2016 = md("TBI Prevalence in 2016 (%)"))%>%
-#       tab_header(title = html(str_c("TBI Prevalence Among Immigrants by <br>TB Disease Incidence in Country of Origin")))
-#  
-#  
-#  gtsave(tbi_inc_tab, "tbi_inc_table.png", path = "/Users/ajordan/OneDrive - McGill University/A TB/Project Writing/TBI Prev Pub/")
+View(tbi_inc_tabprep)
+
+tbi_inc_tab <- pivot_wider(tbi_inc_tabprep, names_from = "CNSY", values_from = c("proportion_pop", "tbi_prev"))
+View( tbi_inc_tab)
 
 ```
 
 
-# Age at Immigration
+# Age at Immigration-Number and Proportion Living in Canada, and Prevalence per Census Year
 ```{r aarp, figures-side, fig.show="hold", out.width="50%", echo=FALSE, include=FALSE}
 
-#View(add_pop)
- tbi_age_tabprep <- unique(add_pop %>%
+tbi_age_tabprep <- unique(add_pop %>%
                               filter(NUMP > 0)%>%
     group_by(CNSY, AARP_BANDS)%>%
-    summarise(proportion_pop=round((sum(NUMP)/tot_pop)*100, 2),
+    summarise(pop_tot_group = sum(NUMP),
+              proportion_pop=round((sum(NUMP)/tot_pop)*100, 2),
                   tbi_prev = round(median(Reduce("+",replace_na(LTBP, replace = 0)))/sum(NUMP)*100,0),
-    tbi_prev_iqr_low = round(quantile(Reduce("+",replace_na(LTBP, replace = 0)), 0.25)/sum(NUMP)*100,0),
-    tbi_prev_iqr_high = round(quantile(Reduce("+",replace_na(LTBP, replace = 0)), 0.75)/sum(NUMP)*100,0),
     tbi_prev_95_low = round(quantile(Reduce("+",replace_na(LTBP, replace = 0)), 0.025)/sum(NUMP)*100,0),
     tbi_prev_95_high = round(quantile(Reduce("+",replace_na(LTBP, replace = 0)), 0.975)/sum(NUMP)*100,0)))
-              #tbi_prev_hi = (sum(LTBP.high)/sum(NUMP))*100,
-              #tbi_prev_low = (sum(LTBP.low)/sum(NUMP))*100)
+
               
 
-  View(tbi_age_tabprep)
+View(tbi_age_tabprep)
   
-#  tbi_age_at_imm_tabprep <- pivot_wider(tbi_age_tabprep, names_from = "CNSY", values_from = c("proportion_pop", "tbi_prev"))
-#   View( tbi_age_at_imm_tabprep )
+tbi_age_at_imm_tabprep <- pivot_wider(tbi_age_tabprep, names_from = "CNSY", values_from = c("proportion_pop", "tbi_prev"))
+View( tbi_age_at_imm_tabprep )
 # View( tbi_age_at_imm_tabprep%>%select(AARP_BANDS, 
 #                                       proportion_pop_2001,
 #                                       proportion_pop_2006,
 #                                       proportion_pop_2011,
 #                                       proportion_pop_2016))
-# 
-#  class( tbi_age_at_imm_tabprep$inc_band_per100k)
-#  class( tbi_age_at_imm_tabprep$proportion_pop_2001)
-#  
-#   tbi_age_at_imm_tabprep[,1:9] <- lapply( tbi_age_at_imm_tabprep[,1:9], as.factor)
-#  
-#   tbi_age_at_imm_tab <- ungroup(tbi_age_at_imm_tabprep) %>%
-#   gt() %>%
-#      cols_label(
-#        proportion_pop_2001 = md("Percentage of Population in 2001 (%)"),
-#        proportion_pop_2006 = md("Percentage of Population in 2006 (%)"),
-#        proportion_pop_2011 = md("Percentage of Population in 2011 (%)"),
-#        proportion_pop_2016 = md("Percentage of Population in 2016 (%)"),
-#        tbi_prev_2001 = md("TBI Prevalence in 2001 (%)"),
-#        tbi_prev_2006 = md("TBI Prevalence in 2006 (%)"),
-#        tbi_prev_2011 = md("TBI Prevalence in 2011 (%)"),
-#        tbi_prev_2016 = md("TBI Prevalence in 2016 (%)"))%>%
-#       tab_header(title = html(str_c("TBI Prevalence Among Immigrants by <br>TB Disease Incidence in Country of Origin")))
-#   
-#   # gtsave(tbi_age_at_imm_tab, "tbi_age_table.png", path = "/Users/ajordan/OneDrive - McGill University/A TB/Project Writing/TBI Prev Pub/")
-#   
-# library(spatstat)
-# unique(add_pop %>%
-#     filter(NUMP > 0)%>%
-#     group_by(CNSY)%>%
-#     summarise(median_aarp = weighted.median(x=AARP, w= NUMP)))
-# 
-#  test_yarp <- unique(add_pop %>%
-#                               filter(NUMP > 0 & CNSY==2016 & YARP==2016 & AARP_BANDS=="AARP 15-34")%>%
-#                        filter(inc_band_per100k%in%c("100-199 per 100,000 persons", "200+ per 100,000 persons"))%>%
-#     summarise(
-#                   tbi_prev = round(median(Reduce("+",replace_na(LTBP, replace = 0)))/sum(NUMP)*100,0)
-#     ))
-#  
-#  test_yarp
+
 ```
 
-AGEP
+Age during Census Year-Proportion Living in Canada and Prevalence per Census Year (Number living in Canada is in census data)
 ```{r agep}
  tbi_age_tabprep <- unique(add_pop %>%
                               filter(NUMP > 0)%>%
     group_by(CNSY, AGE_BANDS)%>%
     summarise(proportion_pop=round((sum(NUMP)/tot_pop)*100, 2),
                   tbi_prev = round(median(Reduce("+",replace_na(LTBP, replace = 0)))/sum(NUMP)*100,0),
-    tbi_prev_iqr_low = round(quantile(Reduce("+",replace_na(LTBP, replace = 0)), 0.25)/sum(NUMP)*100,0),
-    tbi_prev_iqr_high = round(quantile(Reduce("+",replace_na(LTBP, replace = 0)), 0.75)/sum(NUMP)*100,0),
     tbi_prev_95_low = round(quantile(Reduce("+",replace_na(LTBP, replace = 0)), 0.025)/sum(NUMP)*100,0),
-    tbi_prev_95_high = round(quantile(Reduce("+",replace_na(LTBP, replace = 0)), 0.975)/sum(NUMP)*100,0)))
-              #tbi_prev_hi = (sum(LTBP.high)/sum(NUMP))*100,
-              #tbi_prev_low = (sum(LTBP.low)/sum(NUMP))*100)
-              
+    tbi_prev_95_high = round(quantile(Reduce("+",replace_na(LTBP, replace = 0)), 0.975)/sum(NUMP)*100,0))
 
-  View(tbi_age_tabprep)
+View(tbi_age_tabprep)
   
 ```
 
-AGEP & Inc band
-```{r agep}
-tbi_agep_inc_tabprep <- unique(add_pop %>%
-                              filter(NUMP > 0)%>%
-    group_by(CNSY, AGE_BANDS, inc_band_per100k)%>%
-    summarise(proportion_pop=round((sum(NUMP)/tot_pop)*100, 2),
-                  tbi_prev = round(median(Reduce("+",replace_na(LTBP, replace = 0)))/sum(NUMP)*100,0),
-    tbi_prev_iqr_low = round(quantile(Reduce("+",replace_na(LTBP, replace = 0)), 0.25)/sum(NUMP)*100,0),
-    tbi_prev_iqr_high = round(quantile(Reduce("+",replace_na(LTBP, replace = 0)), 0.75)/sum(NUMP)*100,0),
-    tbi_prev_95_low = round(quantile(Reduce("+",replace_na(LTBP, replace = 0)), 0.025)/sum(NUMP)*100,0),
-    tbi_prev_95_high = round(quantile(Reduce("+",replace_na(LTBP, replace = 0)), 0.975)/sum(NUMP)*100,0)))
-              #tbi_prev_hi = (sum(LTBP.high)/sum(NUMP))*100,
-              #tbi_prev_low = (sum(LTBP.low)/sum(NUMP))*100)
-View(tbi_agep_inc_tabprep)
 
-tbi_agep_inc_tabprep%>%
-  select(inc_band_per100k, AGE_BANDS, tbi_prev)%>%
-  filter(CNSY=="2016")%>%
-  pivot_wider(names_from = AGE_BANDS,
-              values_from = tbi_prev)
-
-tbi_agep_inc_tabprep%>%
-  select(inc_band_per100k, AGE_BANDS, tbi_prev_95_low)%>%
-  filter(CNSY=="2016")%>%
-  pivot_wider(names_from = AGE_BANDS,
-              values_from = tbi_prev_95_low)
-
-tbi_agep_inc_tabprep%>%
-  select(inc_band_per100k, AGE_BANDS, tbi_prev_95_high)%>%
-  filter(CNSY=="2016")%>%
-  pivot_wider(names_from = AGE_BANDS,
-              values_from = tbi_prev_95_high)
-
-
-  
-```
-AARP and Inc Band-Pop in last 2 years
+Prevalence among those who Immigrated in last 2 years-Total and by TB Disease Incidence in Country of Origin
 ```{r}
-View(add_pop)
-
-#View(add_pop)
-tbi_age_inc_tabprep <- unique(add_pop %>%
+# Total
+tbi_2years_imm <- unique(add_pop %>%
                                  filter(NUMP > 0 & !is.na(NUMP))%>%
                                 filter(YARP > 2014)%>%
-                                filter(CNSY==2016)%>%
-    group_by(AARP_BANDS, inc_band_per100k)%>%
-    summarise(proportion_pop=round((sum(NUMP)/tot_pop)*100, 1),
+                                filter(CNSY==2016)
+    summarise(
     tbi_prev = round(median(Reduce("+",replace_na(LTBP, replace = 0)))/sum(NUMP)*100,0),
-    tbi_prev_iqr_low = round(quantile(Reduce("+",replace_na(LTBP, replace = 0)), 0.25)/sum(NUMP)*100,0),
-    tbi_prev_iqr_high = round(quantile(Reduce("+",replace_na(LTBP, replace = 0)), 0.75)/sum(NUMP)*100,0),
     tbi_prev_95_low = round(quantile(Reduce("+",replace_na(LTBP, replace = 0)), 0.025)/sum(NUMP)*100,0),
     tbi_prev_95_high = round(quantile(Reduce("+",replace_na(LTBP, replace = 0)), 0.975)/sum(NUMP)*100,0)))
     
-View(tbi_age_inc_tabprep)
+View(tbi_2years_imm)
   
- tbi_age_at_imm_inc_tabprep <- tbi_age_inc_tabprep%>%
-   pivot_wider(names_from = "AARP_BANDS", values_from = c("proportion_pop", 
-                                                    "tbi_prev", 
-                                                    "tbi_prev_iqr_low",
-                                                    "tbi_prev_iqr_high",
-                                                    "tbi_prev_95_low",
-                                                    "tbi_prev_95_high"))
- 
- View( tbi_age_at_imm_inc_tabprep)
- 
- write_xlsx(tbi_age_at_imm_inc_tabprep, "/Users/ajordan/Library/CloudStorage/OneDrive-McGillUniversity/A TB/Project Writing/TBI Prev Pub/within_2year_agexTBinc.xlsx")
-  View( tbi_age_at_imm_inc_tabprep%>%select(tbi_prev_2016,
-          tbi_prev_low_2016,
-          tbi_prev_hi_2016))
- 
- tbi_aarp_inc_2016 <- tbi_age_at_imm_inc_tabprep%>%
-  select(AARP_BANDS, inc_band_per100k, tbi_prev_2016)
 
-
-
- # tbi_aarp_inc_2001 <- tbi_age_at_imm_inc_tabprep%>%
- #  select(AARP_BANDS, inc_band_per100k, tbi_prev_2001)%>%
- # pivot_wider(names_from = "AARP_BANDS", values_from = "tbi_prev_2001")
-
-View(tbi_aarp_inc_2001)
-
-
-View(tbi_aarp_inc_2016)
+# By incidence in COO
+tbi_2years_imm_inc_band <- unique(add_pop %>%
+                                 filter(NUMP > 0 & !is.na(NUMP))%>%
+                                filter(YARP > 2014)%>%
+                                filter(CNSY==2016)%>%
+    group_by(inc_band_per100k)%>%
+    summarise(
+    tbi_prev = round(median(Reduce("+",replace_na(LTBP, replace = 0)))/sum(NUMP)*100,0),
+    tbi_prev_95_low = round(quantile(Reduce("+",replace_na(LTBP, replace = 0)), 0.025)/sum(NUMP)*100,0),
+    tbi_prev_95_high = round(quantile(Reduce("+",replace_na(LTBP, replace = 0)), 0.975)/sum(NUMP)*100,0)))
+    
+View(tbi_2years_imm_inc_band)
 ```
 
-YARP Increments and Inc Band
+YARP Increments and Age During Census Year
 ```{r agep-inc}
 tbi_yarp_agep_tabprep <- unique(add_pop%>%
                               filter(NUMP > 0 & CNSY=="2016")%>%
@@ -652,12 +312,8 @@ tbi_yarp_agep_tabprep <- unique(add_pop%>%
               YARP >= 1000 & YARP < 1997, "20+ years since immigration", "No value"))))))%>%
     group_by(YARP_BANDS, AGE_BANDS)%>%
     summarise(tbi_prev = round(median(Reduce("+",replace_na(LTBP, replace = 0)))/sum(NUMP)*100,0),
-    tbi_prev_iqr_low = round(quantile(Reduce("+",replace_na(LTBP, replace = 0)), 0.25)/sum(NUMP)*100,0),
-    tbi_prev_iqr_high = round(quantile(Reduce("+",replace_na(LTBP, replace = 0)), 0.75)/sum(NUMP)*100,0),
     tbi_prev_95_low = round(quantile(Reduce("+",replace_na(LTBP, replace = 0)), 0.025)/sum(NUMP)*100,0),
     tbi_prev_95_high = round(quantile(Reduce("+",replace_na(LTBP, replace = 0)), 0.975)/sum(NUMP)*100,0)))
-              #tbi_prev_hi = (sum(LTBP.high)/sum(NUMP))*100,
-              #tbi_prev_low = (sum(LTBP.low)/sum(NUMP))*100)
 
 tbi_yarp_agep_tabprep$YARP_BANDS <- factor(tbi_yarp_agep_tabprep$YARP_BANDS, 
                                           levels = c("0-4 years since immigration",
@@ -666,25 +322,24 @@ tbi_yarp_agep_tabprep$YARP_BANDS <- factor(tbi_yarp_agep_tabprep$YARP_BANDS,
                                                      "15-19 years since immigration",
                                                      "20+ years since immigration"))
 
-View(tbi_yarp_agep_tabprep)
+#View(tbi_yarp_agep_tabprep)
 
-View(tbi_yarp_agep_tabprep%>%
+tbi_yarp_agep_med <- tbi_yarp_agep_tabprep%>%
   select(YARP_BANDS, AGE_BANDS, tbi_prev)%>%
   pivot_wider(names_from = AGE_BANDS,
-              values_from = tbi_prev))
+              values_from = tbi_prev)
 
-View(tbi_yarp_agep_tabprep%>%
+tbi_yarp_agep_low <-tbi_yarp_agep_tabprep%>%
   select(YARP_BANDS, AGE_BANDS, tbi_prev_95_low)%>%
   pivot_wider(names_from = AGE_BANDS,
-              values_from = tbi_prev_95_low))
+              values_from = tbi_prev_95_low)
 
-View(tbi_yarp_agep_tabprep%>%
+tbi_yarp_agep_high <- tbi_yarp_agep_tabprep%>%
   select(YARP_BANDS, AGE_BANDS, tbi_prev_95_high)%>%
   pivot_wider(names_from = AGE_BANDS,
-              values_from = tbi_prev_95_high))
+              values_from = tbi_prev_95_high)
 
-
-# Total
+# Total-YARP by Census Year
 
 tbi_yarp_inc_tabprep_total <- unique(add_pop %>%
                               filter(NUMP > 0 & CNSY=="2016")%>%
@@ -696,111 +351,33 @@ tbi_yarp_inc_tabprep_total <- unique(add_pop %>%
               YARP >= 1000 & YARP < 1997, "20+ years since immigration", "No value"))))))%>%
     group_by(CNSY, YARP_BANDS)%>%
     summarise(tbi_prev = round(median(Reduce("+",replace_na(LTBP, replace = 0)))/sum(NUMP)*100,0),
-    tbi_prev_iqr_low = round(quantile(Reduce("+",replace_na(LTBP, replace = 0)), 0.25)/sum(NUMP)*100,0),
-    tbi_prev_iqr_high = round(quantile(Reduce("+",replace_na(LTBP, replace = 0)), 0.75)/sum(NUMP)*100,0),
     tbi_prev_95_low = round(quantile(Reduce("+",replace_na(LTBP, replace = 0)), 0.025)/sum(NUMP)*100,0),
     tbi_prev_95_high = round(quantile(Reduce("+",replace_na(LTBP, replace = 0)), 0.975)/sum(NUMP)*100,0)))
-              #tbi_prev_hi = (sum(LTBP.high)/sum(NUMP))*100,
-              #tbi_prev_low = (sum(LTBP.low)/sum(NUMP))*100)
+
 View(tbi_yarp_inc_tabprep_total)
 
 # AGEP v YARP
-tbi_yarp_agep_tabprep_total <- unique(add_pop %>%
-                              filter(NUMP > 0 & CNSY=="2016")%>%
-                                mutate(YARP_BANDS=ifelse(
-      YARP >= 2012, "0-4 years since immigration", ifelse(
-        YARP >= 2007 & YARP < 2012, "5-9 years since immigration", ifelse(
-          YARP >= 2002 & YARP < 2007, "10-14 years since immigration",ifelse(
-            YARP >= 1997 & YARP < 2002, "15-19 years since immigration",ifelse(
-              YARP >= 1000 & YARP < 1997, "20+ years since immigration", "No value"))))))%>%
-    group_by(YARP_BANDS, AGE_BANDS)%>%
-    summarise(tbi_prev = round(median(Reduce("+",replace_na(LTBP, replace = 0)))/sum(NUMP)*100,0),
-    tbi_prev_iqr_low = round(quantile(Reduce("+",replace_na(LTBP, replace = 0)), 0.25)/sum(NUMP)*100,0),
-    tbi_prev_iqr_high = round(quantile(Reduce("+",replace_na(LTBP, replace = 0)), 0.75)/sum(NUMP)*100,0),
-    tbi_prev_95_low = round(quantile(Reduce("+",replace_na(LTBP, replace = 0)), 0.025)/sum(NUMP)*100,0),
-    tbi_prev_95_high = round(quantile(Reduce("+",replace_na(LTBP, replace = 0)), 0.975)/sum(NUMP)*100,0)))
-              #tbi_prev_hi = (sum(LTBP.high)/sum(NUMP))*100,
-              #tbi_prev_low = (sum(LTBP.low)/sum(NUMP))*100)
-
-View(tbi_yarp_agep_tabprep_total)
-
-```
-
-```{r aarp, figures-side, fig.show="hold", out.width="50%", echo=FALSE, include=FALSE}
-
-#View(add_pop)
- tbi_age_tabprep <- add_pop %>%
-                              filter(NUMP > 0)%>%
-    group_by(CNSY, AARP_BANDS)%>%
-    summarise(subgroup_pop=round(sum(NUMP), 0),
-              tbi_prev_hi = sum(LTBP.high, na.rm = T)/sum(NUMP, na.rm = T)*100,
-              tbi_prev_low = sum(LTBP.low, na.rm = T)/sum(NUMP, na.rm = T)*100)
-              
-
-  View(tbi_age_tabprep)
-  
- tbi_age_at_imm_pop_tabprep <- pivot_wider(tbi_age_tabprep, names_from = "CNSY", values_from = "subgroup_pop")
-  View( tbi_age_at_imm_pop_tabprep)
-View(tbi_age_at_imm_pop_tabprep%>%select(AARP_BANDS, 
-                                      subgroup_pop_2001,
-                                      subgroup_pop_2006,
-                                      subgroup_pop_2011,
-                                      subgroup_pop_2016))
+# tbi_yarp_agep_tabprep_total <- unique(add_pop %>%
+#                               filter(NUMP > 0 & CNSY=="2016")%>%
+#                                 mutate(YARP_BANDS=ifelse(
+#       YARP >= 2012, "0-4 years since immigration", ifelse(
+#         YARP >= 2007 & YARP < 2012, "5-9 years since immigration", ifelse(
+#           YARP >= 2002 & YARP < 2007, "10-14 years since immigration",ifelse(
+#             YARP >= 1997 & YARP < 2002, "15-19 years since immigration",ifelse(
+#               YARP >= 1000 & YARP < 1997, "20+ years since immigration", "No value"))))))%>%
+#     group_by(YARP_BANDS, AGE_BANDS)%>%
+#     summarise(tbi_prev = round(median(Reduce("+",replace_na(LTBP, replace = 0)))/sum(NUMP)*100,0),
+#     tbi_prev_95_low = round(quantile(Reduce("+",replace_na(LTBP, replace = 0)), 0.025)/sum(NUMP)*100,0),
+#     tbi_prev_95_high = round(quantile(Reduce("+",replace_na(LTBP, replace = 0)), 0.975)/sum(NUMP)*100,0)))
+#               #tbi_prev_hi = (sum(LTBP.high)/sum(NUMP))*100,
+#               #tbi_prev_low = (sum(LTBP.low)/sum(NUMP))*100)
+# 
+# View(tbi_yarp_agep_tabprep_total)
 
 ```
 
 
-# Age in Census Year
-```{r aic, figures-side, fig.show="hold", out.width="50%", echo=FALSE, include=FALSE}
-
-# Mean age each census year
-
-View(add_pop%>%
-  group_by(CNSY)%>%
-  summarise(mean(AGEP)))
-
-#View(add_pop)
- tbi_age_tabprep <- unique(add_pop %>%
-                              filter(NUMP > 0)%>%
-    group_by(CNSY, AGE_BANDS)%>%
-    summarise(proportion_pop=round((sum(NUMP)/tot_pop)*100, 2),
-              NUMP_tot = sum(NUMP)))
-              #tbi_prev_hi = (sum(LTBP.high)/sum(NUMP))*100,
-              #tbi_prev_low = (sum(LTBP.low)/sum(NUMP))*100)
-              
-
-  View(tbi_age_tabprep)
-  
- tbi_age_at_imm_tabprep <- pivot_wider(tbi_age_tabprep, names_from = "CNSY", values_from = c("proportion_pop", "NUMP_tot"))
-  View( tbi_age_at_imm_tabprep )
-View( tbi_age_at_imm_tabprep%>%select(AARP_BANDS, 
-                                      proportion_pop_2001,
-                                      proportion_pop_2006,
-                                      proportion_pop_2011,
-                                      proportion_pop_2016))
-
-# Age at Immigration
-
-
-```
-
-AGEP and TBD Inc
-```{r}
-tbi_agep_inc_tabprep <- unique(add_pop %>%
-                                 filter(NUMP > 0 & !is.na(NUMP))%>%
-    group_by(CNSY, AGE_BANDS, inc_band_per100k)%>%
-    summarise(proportion_pop=round((sum(NUMP)/tot_pop)*100, 1),
-    tbi_prev = round(median(Reduce("+",replace_na(LTBP, replace = 0)))/sum(NUMP)*100,0),
-    tbi_prev_iqr_low = round(quantile(Reduce("+",replace_na(LTBP, replace = 0)), 0.25)/sum(NUMP)*100,0),
-    tbi_prev_iqr_high = round(quantile(Reduce("+",replace_na(LTBP, replace = 0)), 0.75)/sum(NUMP)*100,0),
-    tbi_prev_95_low = round(quantile(Reduce("+",replace_na(LTBP, replace = 0)), 0.025)/sum(NUMP)*100,0),
-    tbi_prev_95_high = round(quantile(Reduce("+",replace_na(LTBP, replace = 0)), 0.975)/sum(NUMP)*100,0)))
-    
-View(tbi_agep_inc_tabprep)
-```
-
-
-# Age at Immigration and TBD Inc
+# Age at Immigration and TB Disease Incidence in Country of Origin
 ```{r aarp_inc, figures-side, fig.show="hold", out.width="50%", echo=FALSE}
 
 #View(add_pop)
@@ -811,261 +388,32 @@ tbi_age_inc_tabprep <- unique(add_pop %>%
     group_by(CNSY, AARP_BANDS, inc_band_per100k)%>%
     summarise(proportion_pop=round((sum(NUMP)/tot_pop)*100, 1),
     tbi_prev = round(median(Reduce("+",replace_na(LTBP, replace = 0)))/sum(NUMP)*100,0),
-    tbi_prev_iqr_low = round(quantile(Reduce("+",replace_na(LTBP, replace = 0)), 0.25)/sum(NUMP)*100,0),
-    tbi_prev_iqr_high = round(quantile(Reduce("+",replace_na(LTBP, replace = 0)), 0.75)/sum(NUMP)*100,0),
     tbi_prev_95_low = round(quantile(Reduce("+",replace_na(LTBP, replace = 0)), 0.025)/sum(NUMP)*100,0),
     tbi_prev_95_high = round(quantile(Reduce("+",replace_na(LTBP, replace = 0)), 0.975)/sum(NUMP)*100,0)))
     
 View(tbi_age_inc_tabprep)
-  
- tbi_age_at_imm_inc_tabprep <- tbi_age_inc_tabprep%>%
-   pivot_wider(names_from = "CNSY", values_from = c("proportion_pop", 
-                                                    "tbi_prev", 
-                                                    "tbi_prev_iqr_low",
-                                                    "tbi_prev_iqr_high",
-                                                    "tbi_prev_95_low",
-                                                    "tbi_prev_95_high"))%>%
-   select(AARP_BANDS, 
-          inc_band_per100k, 
-          tbi_prev_2001, 
-          tbi_prev_iqr_low_2001,
-          tbi_prev_iqr_high_2001,
-          tbi_prev_95_low_2001,
-          tbi_prev_95_high_2001,
-          
-          tbi_prev_2006, 
-          tbi_prev_iqr_low_2006,
-          tbi_prev_iqr_high_2006,
-          tbi_prev_95_low_2006,
-         tbi_prev_95_high_2006,
-          
-          tbi_prev_2011, 
-          tbi_prev_iqr_low_2011,
-          tbi_prev_iqr_high_2011,
-          tbi_prev_95_low_2011,
-          tbi_prev_95_high_2011,
-          
-          tbi_prev_2016,
-          tbi_prev_iqr_low_2016,
-          tbi_prev_iqr_high_2016,
-          tbi_prev_95_low_2016,
-          tbi_prev_95_high_2016)
- 
- View( tbi_age_at_imm_inc_tabprep)
-  View( tbi_age_at_imm_inc_tabprep%>%select(tbi_prev_2016,
-          tbi_prev_low_2016,
-          tbi_prev_hi_2016))
- 
- tbi_aarp_inc_2016 <- tbi_age_at_imm_inc_tabprep%>%
-  select(AARP_BANDS, inc_band_per100k, tbi_prev_2016)
 
-
-
- # tbi_aarp_inc_2001 <- tbi_age_at_imm_inc_tabprep%>%
- #  select(AARP_BANDS, inc_band_per100k, tbi_prev_2001)%>%
- # pivot_wider(names_from = "AARP_BANDS", values_from = "tbi_prev_2001")
-
-View(tbi_aarp_inc_2001)
-
-
-View(tbi_aarp_inc_2016)
 ```
 
 
-Put into Excel list
+Put into list to export to Excel for re-naming columns and formatting
 ```{r}
-output_list <- list(pop_coo_by_census,
+output_list <- list(summary_aarp,
+                    summary_agep,
+                    overall_prevalence
+                    pop_aarp_by_census,
+                    pop_coo_by_census,
 tbi_prev_coo_by_census,
 tbi_age_tabprep,
-tbi_inc_tabprep,
- tbi_age_at_imm_inc_tabprep)
+tbi_inc_tab,
+tbi_2years_imm,
+tbi_2years_imm_inc_band,
+tbi_yarp_agep_med,
+tbi_yarp_agep_low,
+tbi_yarp_agep_high,
+tbi_yarp_inc_tabprep_total,
+                    tbi_age_inc_tabprep)
 
-write_xlsx(output_list, "/Users/ajordan/Library/CloudStorage/OneDrive-McGillUniversity/A TB/Project Writing/TBI Prev Pub/tbi_prevalence_tables_v7.xlsx")
-```
-
-```{r top10_toi, figures-side, fig.show="hold", fig.width = 3, fig.height = 5, echo=FALSE}
-  set.seed(123)
-
-  vec <-c("India",
-          "China",
-          "United Kingdom",
-          "United States of America",
-           "Hong Kong",
-           "Philippines",
-                  "Italy",
-                 "Viet Nam",
-                 "Pakistan",
-                 "Iran")
-
-  tbi_top10 <- na.omit(tbi_all_census_years)%>%
-    filter(BPLP%in%c(vec) & CNSY==2016)%>%
-    group_by(CNSY,YARP, BPLP)%>%
-  summarize(tbi_prev = round(median(Reduce("+",replace_na(LTBP, replace = 0)))/sum(NUMP)*100,0),
-    tbi_prev_low = round(quantile(Reduce("+",replace_na(LTBP, replace = 0)), 0.025)/sum(NUMP)*100,0),
-    tbi_prev_high = round(quantile(Reduce("+",replace_na(LTBP, replace = 0)), 0.975)/sum(NUMP)*100,0))%>%
-  mutate(time_since_immigration = CNSY-YARP)
-  
-  tbi_top10$BPLP <- as.factor(tbi_top10$BPLP)
-  
-  plot_tbi_top10 <- ggplot(tbi_top10%>%filter(time_since_immigration <= 30))+
-    geom_smooth(aes(YARP, tbi_prev, group = BPLP), se=F)+
-    geom_smooth(aes(YARP, tbi_prev_high, group = BPLP), se=F, linetype = "dashed")+
-    geom_smooth(aes(YARP, tbi_prev_low, group = BPLP), se=F, linetype = "dashed")+
-    facet_wrap(BPLP~CNSY, ncol = 4)
-  
-  plot_tbi_top10
-  
-  # TOP TEN NUMBER OF ARRIVALS-VALUE EXTRACTION
-  # Extracting the values from the smoothing-and yes, this was the simplest way to do this
-  gg_build2 <- ggplot_build(plot_tbi_top10)
-  #View(gg_build2)
-  extract_values_top10 <- data.frame(gg_build2$data)
-  extract_values_top10$size <- as.factor(extract_values_top10$size)
-  extract_values_top10$group <- as.factor(extract_values_top10$group)
-  unique(extract_values_top10$size)
-  
-  View(extract_values_top10)
-  
-  extracted_top10 <- extract_values_top10%>%
-    select(size, group, x, y, x.1, y.1, x.2, y.2)%>%
-    rename(YARP = x,
-           tbi_prev_smooth = y)%>%
-    mutate(BPLP = ifelse(group == "1", "China",
-                      ifelse(group == "2", "Hong Kong",
-                      ifelse(group == "3", "India",
-                      ifelse(group == "4", "Iran",
-                      ifelse(group == "5", "Italy",
-                      ifelse(group == "6", "Pakistan",
-                      ifelse(group == "7", "Philippines",
-                      ifelse(group == "8", "United Kingdom",
-                      ifelse(group == "9", "United States of America",
-                      ifelse(group == "10", "Viet Nam",
-                             "No Value")))))))))))
-  
-  View(extracted_top10)
-  
-  # TOP 5 COUNTRIES v TBI PREV v YARP-GRAPHING
-  ggplot(extracted_top10, color = "#C00000")+
-    geom_ribbon(aes(x = YARP, 
-                    ymin = y.1, 
-                    ymax = y.2),
-                alpha = 1,
-                 fill = "steelblue")+
-    geom_line(aes(x=YARP, 
-                  y=tbi_prev_smooth), size = 1)+
-    labs(x = "Year of Immigration",
-         y = "Prevalence of Tuberculosis Infection (%)",
-         fill = "Country of Origin",
-         title = str_c("TBI Prevalence Among Those Who Immigrated within the Last 30 Years \nfrom Top 10 Common Countries of Origin"))+
-    facet_wrap(.~BPLP, ncol = 4)+
-    theme_bw()+
-    scale_fill_brewer(palette = "Set3")+
-    theme(text = element_text(size = 9, face = "bold"))+
-      scale_x_continuous(breaks = round(seq(1900, 2010, by = 10),1))+
-    scale_y_continuous(limits = c(0,100), breaks = round(seq(0, 100, by = 20),1))+
-      theme(plot.title = element_text(size=11))
-```
-
-# Incidence Bands-Number Living in Canada
-```{r inc, figures-side, fig.show="hold", out.width="50%", echo=FALSE}
-
-add_pop <- tbi_all_census_years%>%
-    group_by(CNSY)%>%
-  mutate(tot_pop = sum(NUMP))
-
-#View(add_pop)
-
-  tbi_inc_tabprep_pop <- add_pop %>%
-                              filter(NUMP > 0)%>%
-    group_by(CNSY, inc_band_per100k)%>%
-    summarise(subgroup_pop=round(sum(NUMP), 0))
-              #tbi_prev_hi = (sum(LTBP.high)/sum(NUMP))*100,
-              #tbi_prev_low = (sum(LTBP.low)/sum(NUMP))*100)
-              
-
-  View(tbi_inc_tabprep_pop)
-  
-tbi_inc_tabprep_pop <- pivot_wider(tbi_inc_tabprep_pop, names_from = "CNSY", values_from = "subgroup_pop")
-View(tbi_inc_tabprep_pop)
-
-```
-
-
-
-# Log likelihood ratio test for countries
-```{r}
-
- vec_countries <- c("India",
-                 "China",
-                 "United Kingdom",
-                 "United States of America",
-                  "Hong Kong",
-                 "Philippines",
-                  "Italy")
-
-tbi_all_census_years$BPLP <- str_trim(tbi_all_census_years$BPLP)
-
-  tbi_top10 <- tbi_all_census_years%>%
-    group_by(CNSY, BPLP)%>%
-    summarise(NUMP=sum(NUMP),
-              tbi_prev = (sum(LTBP)/sum(NUMP))*100)%>%
-  arrange(desc(NUMP))%>%
-  slice_head(n=13)%>%
-  filter(BPLP%in%c(vec_countries))%>%
-    select(-NUMP)
-
-  View(tbi_top10)
-  
-  
-  tbi_top_10_tabprep <- pivot_wider(tbi_top10, names_from = "CNSY", values_from = "tbi_prev")
- tbi_top_10_tabprep_long <- tbi_top_10_tabprep%>%
-  mutate(`2002`=NA,
-         `2003` = NA,
-         `2004`=NA,
-         `2005` = NA,
-         `2007`=NA,
-         `2008` = NA,
-         `2009`=NA,
-         `2010` = NA,
-         `2012`=NA,
-         `2013` = NA,
-         `2014`=NA,
-         `2015` = NA)%>%
-    pivot_longer(cols = `2001`:`2015`,
-      names_to = "CNSY",
-                 values_to = "tbi_prev")
- 
-  #tbi_top_10_tabprep_long vec_countries[1]
- 
- tbi_top_10_fill <- tbi_top_10_tabprep_long%>%
-   arrange(BPLP, CNSY)%>%
-    fill(tbi_prev, .direction = "down")
-View(tbi_top_10_fill )
-
-tbi_top_10_fill%>%filter(BPLP=="China")
-
-tbi_top_10_fill$tbi_prev <- tbi_top_10_fill$tbi_prev/100
-
-for(i in 1:7){
-  
- model <- glm(data = subset(tbi_top10, BPLP == "China"), formula = (tbi_prev/100) ~ as.numeric(CNSY), family = binomial(link = 'logit'))
-  summary(model)
-  
-}
-
-tbi_top_10_fill
-
-t_test <- tbi_top_10_fill%>%filter(BPLP=="China" & CNSY =="2001" | BPLP=="China" & CNSY=="2016")
-t_test
-
-library(coin)
-median_test(data = t_test, tbi_prev~as.factor(CNSY))
-```
-
-
-
-
-```{r}
-
+write_xlsx(output_list, "/Users/ajordan/Library/CloudStorage/OneDrive-McGillUniversity/A TB/Project Writing/TBI Prev Pub/tbi_prevalence_tables.xlsx")
 ```
 

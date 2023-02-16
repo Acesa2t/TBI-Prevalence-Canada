@@ -73,13 +73,13 @@ low.percentile <- 0.025
 high.percentile <- 0.975
 
 #' Data inputs file path
-path.in <- "/Users/ajordan/OneDrive - McGill University/LTBI-Aust-CEA-master/Data/"
+path.in <- "TBI-Prevalence-Canada/Census/"
 
 #' Output file path
-path.out <- "/Users/ajordan/OneDrive - McGill University/LTBI-Aust-CEA-master/Data/"
+path.out <- "TBI-Prevalence-Canada/Analysis and Outputs/"
 
 #' Source all functions, which are located within the "Functions" file.
-source(paste0(path.in, "Functions3 iso3 2years.R"))
+source(paste0(path.in, "Functions3 iso3.R"))
 
 #' INPUTS ===========================================================================================================#
 
@@ -104,7 +104,7 @@ View(tbhaz.200rep)
 
 #View(tbhaz.200rep)
 #' Load the census data 
-census <- read.csv(paste0(path.in, "2016_census_classified_v2 copy.csv"), header = T)
+census <- read.csv(paste0(path.in, "2016_census_classified.csv"), header = T)
 #View(census)
 census <- census%>%select(-AGE_GROUP, -YARP_group)
 colnames(census) <- c("ISO3", "WHO_R","AGEP","YARP","BPLP","CNSY","YOBP","NUMP")
@@ -170,12 +170,6 @@ census_replicates <- census_probs%>%
 
 View(census_replicates)
 
-# prev_replicates <- census_replicates%>%
-#   group_by(ISO3)%>%
-#   summarise(LTBP_replicates = sum(LTBP, na.rm = T),
-#             NUMP_rep = NUMP_tot)
-# 
-# View(sum_replicates)
 
 # Exclude all that aren't the 168
 library(readxl)
@@ -224,7 +218,7 @@ tbi_data%>%
             tbi_prev_high = quantile(LTBP_sum, probs = 0.975)/NUMP_sum)
 
 
-# TWO YEARS OF IMMIGRATION
+# IMMIGRATION WITHIN LAST TWO YEARS
 
 census_probs_immigration <- census_and_haz_withCAN%>%
   filter(YARP >= 2015)%>%
@@ -243,15 +237,11 @@ census_replicates_immigration <- census_probs_immigration%>%
 
 #View(census_replicates_immigration)
 
-# prev_replicates_immigration <- census_replicates_immigration%>%
-#   group_by(ISO3)%>%
-#   summarise(LTBP_replicates = sum(LTBP, na.rm = T),
-#             NUMP_rep = NUMP_tot)
-
 # Exclude all that aren't the 168
 
 tbi_data_immigration <- merge(census_replicates_immigration, tb_inc, by = "ISO3")
 
+# Estimate with or without TB disease in country of origin
 tbi_prev_aarp_2years_immigration <- tbi_data_immigration%>%
   filter(NUMP_replicates > 0 & !is.na(NUMP_replicates))%>%
   filter(ISO3!="CAN")%>%
@@ -271,199 +261,3 @@ tbi_prev_aarp_2years_immigration <- tbi_data_immigration%>%
             tbi_prev_high = quantile(LTBP_sum, probs = 0.975)/NUMP_sum)
 
 View(unique(tbi_prev_aarp_2years_immigration))
-
-tbi_data_immigration%>%
-  filter(NUMP_replicates > 0 & !is.na(NUMP_replicates))%>%
-  filter(ISO3!="CAN")%>%
-  filter(!ISO3%in%c(exclusion_vector))%>%
-  group_by(replicate)%>%
-  summarise(LTBP_sum =sum(LTBP_replicates),
-            NUMP_sum = sum(NUMP_replicates))%>%
-  #group_by(inc_band_per100k)%>%
-  summarise(tbi_prev_median = median(LTBP_sum)/NUMP_sum,
-            tbi_prev_low = quantile(LTBP_sum, probs = 0.025)/NUMP_sum,
-            tbi_prev_high = quantile(LTBP_sum, probs = 0.975)/NUMP_sum)
-
-# IGNORE ALL BELOW
-
-# tbhaz.5000rep <- tbhazprep.function(tbhaz.5000rep)
-
-#' Clean the census data so that it has the following columns
-#' AGEP, YARP, cob, NUMP, CNSY, YOBP and ISO3
-# census <- CleanseCensus(census)
-
-#' Clean the TB data so that it has the following columns
-#' AGEP, YARP, cob, NUMP, year, YOBP and ISO3
-tb <- CleanseTBdata(tb)
-
-tb <- subset(tb, year == census.year)
-tb <- as.data.table(tb)
-tb[, CNSY := as.numeric(year)]
-
-#' Checking if there are any countries that don't have an 
-#' ISO3 match from Houben and Dodd.
-setdiff(census$ISO3, tbhaz.200rep$iso3) 
-View(census)
-setdiff(tb$ISO3, census$ISO3) 
-
-setdiff(tb$ISO3, tbhaz.200rep$iso3) 
-
-setdiff(census$ISO3, tbhaz.200rep$iso3) #' All countries in the census data are captured in Houben & Dodd data.
-
-#' Create a master look-up table of all probabilities of infection 
-#' for each population group, by using the census and tb tables 
-#' to get a list of unique ISO codes.
-master.Prob <- CreateProbTables()
-
-#' ==================edited out the ISO3 look-up for 5000 vs 200 rep
-#' Subset the look-up table by ISO3 depending on whether the relevant tbhaz values 
-#' are in the tbhaz.200 or tbhaz.5000 data set.
-# prob.Inf5000 <- master.Prob[ISO3 == "CHN" | ISO3 == "GBR" | ISO3 == "IND" |
-#                               ISO3 == "MYS" | ISO3 == "PHL" | ISO3 == "VNM"]
-# 
-# prob.Inf200 <- master.Prob[ ISO3 != census.iso3 & ISO3 != "CHN" & ISO3 != "GBR" 
-#                             & ISO3 != "IND" & ISO3 != "MYS" & ISO3 != "PHL" 
-#                             & ISO3 != "VNM"]
-
-prob.Inf200 <- master.Prob[ !(ISO3 %in% c(census.iso3))] 
-
-#' Also create a separate look-up table for the locally born.
-prob.Inf.local <- master.Prob[ISO3 == census.iso3]
-
-#' Tidy
-rm(master.Prob)
-
-#' The following function calculates hazards for the locally
-#' born population (prob.Inf.local). The percentiles
-#' that are required can be defined earlier in the script.
-
-prob.Inf.local <- TBhazard.calc.function.local.born(prob.Inf.local, tbhaz.200rep)
-
-#' Saving and removing file (memory management)
-saveRDS(prob.Inf.local, file = paste0(path.out, "prob.Inf.local.rds"))
-rm(prob.Inf.local)
-
-#' The following function calculates hazards for the population
-#' groups in the prob.Inf200 look-up table. The percentiles
-#' that are required can be defined earlier in the script.
-#' Because the hazard calculations are quite memory intensive, 
-#' I've split the data into groups by year of birth, before 
-#' running the function on it, so the chunks are more manageable.
-#' Then the separate chunks are subsequently bound together again.
-
-prob.Inf200[YOBP < 1930 , YOBPgroup := 1]
-prob.Inf200[YOBP > 1929 & YOBP < 1960 , YOBPgroup := 2]
-prob.Inf200[YOBP > 1959 & YOBP < 1980 , YOBPgroup := 3]
-prob.Inf200[YOBP > 1979 & YOBP < 2000 , YOBPgroup := 4]
-prob.Inf200[YOBP > 1999 & YOBP < 2010 , YOBPgroup := 5]
-prob.Inf200[YOBP > 2009 , YOBPgroup := 6]
-
-yob.split <- split(prob.Inf200, prob.Inf200$YOBPgroup)
-
-yob.split <- lapply(yob.split, TBhazard.calc.function.overseas.born, tbhaz.200rep)
-View(yob.split[[1]])
-
-prob.Inf200 <- do.call("rbind", yob.split)
-
-View(prob.Inf200)
-#' Tidy
-#'
-rm(yob.split)
-
-#' Saving and removing file (memory management)
-saveRDS(prob.Inf200, file = paste0(path.out, "prob.Inf200.rds"))
-View(prob.Inf200)
-#' Tidy
-rm(prob.Inf200)
-
-#' Repeat the same as above for the 5000rep look-up table.
-#' However, with this table it is simplest to split it by ISO3, 
-#' rather than year of birth (because there are only six ISO3).
-
-#=================Removing iso3.split=============================
-#iso3.split <- split(prob.Inf5000, prob.Inf5000$ISO3)
-#' 
-#iso3.split <- lapply(iso3.split, TBhazard.calc.function.overseas.born, tbhaz.5000rep)
-#' 
-#prob.Inf5000 <- do.call("rbind", iso3.split)
-#' 
-#' #' Saving and removing file (memory management)
-#saveRDS(prob.Inf5000, file = paste0(path.out, "prob.Inf5000.rds"))
-#rm(prob.Inf5000, iso3.split)
-
-#' Order the census data.table.
-census <- setorder(census, ISO3, YOBP, YARP)
-
-#' Load the look-up tables back in.
-prob.Inf200 <- readRDS(paste0(path.out, "prob.Inf200.rds"))
-#prob.Inf5000 <- readRDS(paste0(path.out, "prob.Inf5000.rds"))
-prob.Inf.local <- readRDS(paste0(path.out, "prob.Inf.local.rds"))
-
-#' Bind the look-up tables altogether to make the master look-up.
-prob.Inf <- rbind(prob.Inf.local, prob.Inf200, fill = T)
-View(prob.Inf)
-#' Tidy ==========EDITED OUT prob.Inf5000
-rm(prob.Inf.local, prob.Inf200)
-
-#' Calculating the probability of infection (PROB)
-#' from the hazards.
-#' 
-rm(tbhaz.200rep)
-
-# prob.Inf[, negPROB := .(mapply('*',-1, Ho, SIMPLIFY = F)),]
-# prob.Inf[, Ho := NULL,]
-# prob.Inf[, prePROB := .(mapply(exp, negPROB, SIMPLIFY = F)),]
-# prob.Inf[, negPROB := NULL,]
-# prob.Inf[, PROB := .(mapply('-', 1, prePROB, SIMPLIFY = F)),]
-# prob.Inf[, prePROB := NULL,]
-
-prob.Inf[, PROB.med := 1 - exp(-(Ho.med))]
-prob.Inf[, PROB.low := 1 - exp(-(Ho.low))]
-prob.Inf[, PROB.high := 1 - exp(-(Ho.high))]
-View(prob.Inf)
-
-#' Calculating the number of individuals in the population estimated 
-#' to have been infected (LTBP).
-
-census <- as.data.table(census)
-# census[prob.Inf,  PROB:=PROB, on = .(ISO3, YOBP, YARP),]
-
-census[prob.Inf, PROB.med := PROB.med, on = .(ISO3, YOBP, YARP)]
-census[prob.Inf, PROB.low := PROB.low, on = .(ISO3, YOBP, YARP)]
-census[prob.Inf, PROB.high := PROB.high, on = .(ISO3, YOBP, YARP)]
-
-View(census)
-
-census_na <- na.omit(census)
-#View(prob.Inf)
-length(unique(census_na$ISO3))
-
-#' Check the number missing LTBP information
-census[is.na(LTBP), sum(NUMP)]
-
-#' Check the percentage missing LTBP information
-#' (some investigation may need to be done to work out
-#' why these population groups have missing data. It
-#' could be because some countries of birth were not
-#' mapped to an ISO3 value).
-census[is.na(LTBP), sum(NUMP)]/census[, sum(NUMP)] * 100
-
-#' Merge in the TB data
-#census <- merge(census, tb, by = c("AGEP", "ISO3", "CNSY", "YARP"), all.x = T)
-#View(census)
-
-saveRDS(census, file = paste0(path.out, "2016-2 years estimates_v4.rds"))
-
-#write.csv(census,"/Users/ajordan/OneDrive - McGill University/LTBI-Aust-CEA-master/Data/Outputs/2016 estimates_v4.csv", row.names = FALSE)
-
-
-
-
-#' DATA OUTPUTS =======================================================================================================#
-
-#' Save all the objects that haven't yet been saved.
-saveRDS(prob.Inf, file = paste0(path.out, "2016-2 years.prob.Inf_iso3_v4.rds"))
-
-saveRDS(census, file = paste0(path.out, "2016-2 years_census_iso3_v4.rds"))
-
-# May have removed YOBP > YARP too early

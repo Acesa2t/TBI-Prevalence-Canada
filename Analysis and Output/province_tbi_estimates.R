@@ -10,7 +10,7 @@ library(tidyverse)
 tbi <- readRDS("Analysis and Output/census_other_provinces_v1.rds")
 #View(tbi)
 
-# Final check to ensure that no extra rows made it into analysis
+# Ensure that no extra rows made it into analysis
 tbi <- tbi%>%filter(NUMP > 0 | ISO3 != "CAN")%>%filter(YARP >= YOBP)
 
 # View(tbi%>%
