@@ -4,7 +4,7 @@
 #----------------------
 library(tidyverse)
 
-census_afr <- readRDS("census_who_2001_v4.rds")
+census_afr <- readRDS("TBI-Prevalence-Canada/Census/Census 2001 Year/census_who_2001.rds")
 head(census_afr)
 
 # AFRO will need to be split into HIV-high and HIV-low
@@ -72,6 +72,6 @@ recode(WHO_R, "AFRO" = "AFR-Low"))
 unique(census_afr_new$WHO_R)
 
 saveRDS(census_afr_new, 
-        file = "/Users/ajordan/OneDrive - McGill University/LTBI-Aust-CEA-master/Census/Census 2001 Year/census_afr_2001_v4.rds")
+        file = "TBI-Prevalence-Canada/Census/Census 2001 Year/census_afr_2001.rds")
 
 # Next script census_NC.R

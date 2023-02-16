@@ -6,7 +6,7 @@ library(reshape2)
 library(readxl)
 library(writexl)
 
-census_2006 <- read_xlsx("Census 2006.xlsx", skip = 1)
+census_2006 <- read_xlsx("TBI-Prevalence-Canada/Census/Census 2006/Census 2006.xlsx", skip = 1)
 View(census_2006)
 
 # Clear out some unneeded rows and columns
@@ -66,8 +66,8 @@ View(census_new_age)
 census_yobp <- census_new_age%>%mutate(YOBP = 2006-AGEP)%>%filter(YOBP <= YARP)
 View(census_yobp)
 
-#write.csv(census_yobp, "/Users/ajordan/OneDrive - McGill University/LTBI-Aust-CEA-master/Census/Census 2006/census_rep_2006.csv")
+#write.csv(census_yobp, "TBI-Prevalence-Canada/Census/Census 2006/census_rep_2006.csv")
 
-write_xlsx(census_yobp, "/Users/ajordan/OneDrive - McGill University/LTBI-Aust-CEA-master/Census/Census 2006/census_rep_2006_v2.xlsx")
+write_xlsx(census_yobp, "TBI-Prevalence-Canada/Census/Census 2006/census_rep_2006.xlsx")
 
 # Next script census_dist

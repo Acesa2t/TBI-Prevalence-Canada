@@ -8,7 +8,7 @@ library(tidyverse)
 library(zoo)
 
 #census_extension <- read_xlsx("2census_data_clean.xlsx")
-census_extension <- read.csv("3census_data_clean.csv")
+census_extension <- read.csv("TBI-Prevalence-Canada/Census/Census 2016/census_data_clean.csv")
 
 census_post1980 <- census_extension%>%filter(YARP != 1980)
 census_1980 <- census_extension%>%filter(YARP == 1980)
@@ -42,7 +42,7 @@ for (i in 1:nrow(census_1980)){
     census_1980<-add_row(census_1980, ID=unlist(census_1980[h,9]), YARP=unlist(census_1980[h,3])-(1*i))
   }
 }
-saveRDS(census_1980, file = "/Users/ajordan/OneDrive - McGill University/LTBI-Aust-CEA-master/Census/3census_1980.rds")
+saveRDS(census_1980, file = "TBI-Prevalence-Canada/Census/Census 2016/3census_1980.rds")
 # Fill in the NAs then delete duplicate values
 census_1980 <- census_1980%>%arrange(ID)
 nrow(census_1980)
@@ -77,9 +77,6 @@ census_1930to1980 <- rbind(census_post1980,census_1930)
 View(census_1930to1980)
 
 
-#write_xlsx(census_1930to1980, 
-#           path = "/Users/ajordan/OneDrive - McGill University/LTBI-Aust-CEA-master/Census/2census_1930to1980.xlsx")
-
 saveRDS(census_1930to1980, 
-        file = "/Users/ajordan/OneDrive - McGill University/LTBI-Aust-CEA-master/Census/3census_1930to1980.rds")
+        file = "TBI-Prevalence-Canada/Census/Census 2016/census_1930to1980.rds")
 # Next script is census_country1

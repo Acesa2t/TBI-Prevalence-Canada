@@ -7,7 +7,7 @@ library(janitor)
 library(tidyverse)
 library(zoo)
 
-census_extension <- read.csv("census_calced.csv")
+census_extension <- read.csv("TBI-Prevalence-Canada/Census/Census 2011/census_calced.csv")
 View(census_extension)
 
 
@@ -58,10 +58,11 @@ for (i in 1:nrow(census_1970)){
 # }
 #View(census_1970t)
 
-saveRDS(census_1970, file = "/Users/ajordan/OneDrive - McGill University/LTBI-Aust-CEA-master/Census/Census 2011/census2011_1970v3.rds")
+# Loop takes long time to run so save copy of contents
+saveRDS(census_1970, file = "TBI-Prevalence-Canada/Census/Census 2011/census2011_1970.rds")
 
 
-census_1970 <- readRDS("census2011_1970v3.rds")
+census_1970 <- readRDS("census2011_1970.rds")
 # Fill in the NAs then delete duplicate values
 
 census_1970 <- census_1970%>%arrange(ID)
@@ -110,7 +111,7 @@ View(census_allyears%>%ungroup%>%
        summarise(tot_pop = sum(as.numeric(NUMP))))
 
 saveRDS(census_allyears, 
-        file = "/Users/ajordan/OneDrive - McGill University/LTBI-Aust-CEA-master/Census/Census 2011/3census_1930to1970.rds")
+        file = "TBI-Prevalence-Canada/Census/Census 2011/census_1930to1970.rds")
 
 
 # Next script is census_country1

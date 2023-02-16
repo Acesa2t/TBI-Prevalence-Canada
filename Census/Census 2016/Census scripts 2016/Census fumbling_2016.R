@@ -4,7 +4,7 @@ library(janitor)
 library(writexl)
 
 # Find number of excel sheets
-nsheets <- length( excel_sheets( "2016 census stratified.xlsx") )
+nsheets <- length( excel_sheets( "TBI-Prevalence-Canada/Census/Census 2016/2016 census stratified.xlsx") )
 
 # Read in each page, save inside a list
 # aa <- read_xlsx("2016 census stratified.xlsx", sheet = 3)
@@ -17,7 +17,7 @@ list_census <- list()
 
 # Add each Excel sheet to the list as a data frame
 for(x in 1:nsheets){
-  list_census[[x]] <- read_xlsx("2016 census stratified.xlsx", sheet = x, range = "A6:L278")
+  list_census[[x]] <- read_xlsx("TBI-Prevalence-Canada/Census/Census 2016/2016 census stratified.xlsx", sheet = x, range = "A6:L278")
 }
 
 class(list_census)
@@ -52,6 +52,6 @@ for(i in 1:nsheets){
 
 
 #Export back into Excel
-write_xlsx(lc2, path = "census_total.xlsx")
+write_xlsx(lc2, path = "TBI-Prevalence-Canada/Census/Census 2016/census_total.xlsx")
 
 # Next script census_rep

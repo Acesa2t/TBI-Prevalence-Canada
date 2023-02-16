@@ -10,14 +10,14 @@ library(writexl)
 library(janitor)
 
 # Find number of excel sheets
-num_sheets <- length(excel_sheets("census_t.xlsx"))
+num_sheets <- length(excel_sheets("TBI-Prevalence-Canada/Census/Census 2011/census_t.xlsx"))
 
 # Define empty list
 list_census_p2 <- list()
 
 # Add each Excel sheet to the list as a data frame
 for(x in 1:num_sheets){
-  list_census_p2[[x]] <- read_xlsx("census_t.xlsx", sheet = x)
+  list_census_p2[[x]] <- read_xlsx("TBI-Prevalence-Canada/Census/Census 2011/census_t.xlsx", sheet = x)
 }
 
 
@@ -77,7 +77,7 @@ c_rep_year<- census_cols_expanded%>%mutate(
 View(c_rep_year%>%select(age, year_of_arrival, yarp, Americas))
 
 
-write_xlsx(c_rep_year, path = "/Users/ajordan/OneDrive - McGill University/LTBI-Aust-CEA-master/Census/Census 2011/census_rep_2011.xlsx")
+write_xlsx(c_rep_year, path = "TBI-Prevalence-Canada/Census/Census 2011/census_rep_2011.xlsx")
 
 
 # Next script census_calc new.R

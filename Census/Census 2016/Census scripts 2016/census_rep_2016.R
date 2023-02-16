@@ -9,14 +9,14 @@ library(janitor)
 library(taRifx)
 
 # Find number of excel sheets
-num_sheets <- length(excel_sheets("census_total.xlsx"))
+num_sheets <- length(excel_sheets("TBI-Prevalence-Canada/Census/Census 2016/census_total.xlsx"))
 
 # Define empty list
 list_census_p2 <- list()
 
 # Add each Excel sheet to the list as a data frame
 for(x in 1:num_sheets){
-  list_census_p2[[x]] <- read_xlsx("census_total.xlsx", sheet = x)
+  list_census_p2[[x]] <- read_xlsx("TBI-Prevalence-Canada/Census/Census 2016/census_total.xlsx", sheet = x)
 }
 
 #View(list_census_p2[[1]])
@@ -34,7 +34,7 @@ for(i in 1:length(x_age)){
     select(age, everything())
 }
 
-write_xlsx(list_census_len, path = "/Users/ajordan/OneDrive - McGill University/LTBI-Aust-CEA-master/Census/census_rep.xlsx")
+write_xlsx(list_census_len, path = "TBI-Prevalence-Canada/Census/Census 2016/census_rep.xlsx")
 
 
 # Next script census_calc new.R

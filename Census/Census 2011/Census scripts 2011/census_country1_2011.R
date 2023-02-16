@@ -8,7 +8,7 @@ library(countrycode)
 
 # Read in Data
 
-census_country <- readRDS("3census_1930to1970.rds")
+census_country <- readRDS("TBI-Prevalence-Canada/Census/Census 2011/census_1930to1970.rds")
 #View(census_country)
 census_country%>%summarise(tot_pop = sum(as.numeric(NUMP)))
 
@@ -34,7 +34,7 @@ View(census_country%>%
 
 length(unique(census_country$iso3))
 saveRDS(census_country, 
-        file = "/Users/ajordan/OneDrive - McGill University/LTBI-Aust-CEA-master/Census/Census 2011/3census2011_iso3.rds")
+        file = "TBI-Prevalence-Canada/Census/Census 2011/census2011_iso3.rds")
 
 
 # Next script census_regions.R

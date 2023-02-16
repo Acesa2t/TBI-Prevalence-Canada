@@ -5,7 +5,7 @@ library(janitor)
 
 # Taking countries that are not classified to a certain WHO region and providing them with that classifcation
 
-census_nc <- readRDS("/Users/ajordan/Library/CloudStorage/OneDrive-McGillUniversity/LTBI-Aust-CEA-master/Census/Census 2006/census_afr_2006.rds")
+census_nc <- readRDS("TBI-Prevalence-Canada/Census/Census 2006/census_afr_2006.rds")
 View(census_nc%>%filter(ISO3 == "CAN"))
 
 country_list <- unique(census_nc%>%
@@ -98,8 +98,9 @@ median(census_classified$AGEP)
 
 
 #View(census_classified%>%filter(ISO3 == "CAN"))
-write.csv(census_classified, file = "/Users/ajordan/OneDrive - McGill University/LTBI-Aust-CEA-master/Census/Census 2006/census_classified_2006_v2.csv")
+write.csv(census_classified, file = "TBI-Prevalence-Canada/Census/census_classified_2006.csv")
 
-#saveRDS(census_classified, file = "/Users/ajordan/OneDrive - McGill University/LTBI-Aust-CEA-master/Census/Census 2011/2census2011_classified.rds")
+# Option to save as RDS to save memory
+#saveRDS(census_classified, file = "TBI-Prevalence-Canada/Census/Census 2006/census2006_classified.rds")
 
 # Duplicate csv and use for TBI prevalence script

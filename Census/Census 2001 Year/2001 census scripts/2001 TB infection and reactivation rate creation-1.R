@@ -73,10 +73,10 @@ low.percentile <- 0.25
 high.percentile <- 0.75
 
 #' Data inputs file path
-path.in <- "/Users/ajordan/OneDrive - McGill University/LTBI-Aust-CEA-master/Data/"
+path.in <- "TBI-Prevalence-Canada/Census/"
 
 #' Output file path
-path.out <- "/Users/ajordan/OneDrive - McGill University/LTBI-Aust-CEA-master/Data/"
+path.out <- "TBI-Prevalence-Canada/Analysis and Output/"
 
 #' Source all functions, which are located within the "Functions" file.
 source(paste0(path.in, "Functions3 iso3.R"))

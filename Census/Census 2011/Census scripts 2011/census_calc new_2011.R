@@ -9,7 +9,7 @@ library(janitor)
 
 # Read in file
 
-  census_rep <- read_xlsx("census_rep_2011.xlsx")
+  census_rep <- read_xlsx("TBI-Prevalence-Canada/Census/Census 2011/census_rep_2011.xlsx")
 class(census_rep)
 
 census_cols <- census_rep%>%select(-year_of_arrival)
@@ -77,7 +77,7 @@ unique(census_colsv3$YARP_group)
 View(census_colsv3%>%filter(YOBP > YARP))
 
 
-write.csv(census_colsv3, file = "/Users/ajordan/OneDrive - McGill University/LTBI-Aust-CEA-master/Census/Census 2011/census_calced.csv")
+write.csv(census_colsv3, file = "TBI-Prevalence-Canada/Census/Census 2011/census_calced.csv")
 
-# Next script census_extension loop.R
+# Next script census_extension.R
 

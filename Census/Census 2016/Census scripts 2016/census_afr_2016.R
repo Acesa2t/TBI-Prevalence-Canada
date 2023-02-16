@@ -3,7 +3,7 @@
 # Later problem: Will some of these islands that fall under 'not classified' need their populations added to the larger country that they are a part of? (i.e. American Samoa)
 #----------------------
 
-census_afr <- read_xlsx("3census_whoadded_v2.xlsx")
+census_afr <- read_xlsx("TBI-Prevalence-Canada/Census/Census 2016/census_whoadded_v2.xlsx")
 head(census_afr)
 
 # AFRO will need to be split into HIV-high and HIV-low
@@ -69,7 +69,7 @@ recode(WHO_regions, "AFRO" = "AFR-Low"))
 
 unique(census_afr_new$WHO_regions)
 
-write_xlsx(census_afr_new, path = "/Users/ajordan/OneDrive - McGill University/LTBI-Aust-CEA-master/Census/Census 2016/3census_afr_v2.xlsx")
+write_xlsx(census_afr_new, path = "TBI-Prevalence-Canada/Census/Census 2016/census_afr.xlsx")
 
 
 # Next script census_NC.R

@@ -1,12 +1,11 @@
-# Census melting, repping, and fumbling
-# Script #1
+# Script #1-for viewing and cleaning the census data
 rm(list = ls(all.names = TRUE))
 library(tidyverse)
 library(reshape2)
 library(readxl)
 library(writexl)
 
-census_2001 <- read_xlsx("Census 2001.xlsx", skip = 1)
+census_2001 <- read_xlsx("TBI-Prevalence-Canada/Census/Census 2001 Year/Census 2001.xlsx", skip = 1)
 #View(census_2001)
 
 # Clear out some unneeded rows and columns
@@ -68,6 +67,6 @@ View(census_yobp)
 
 #write.csv(census_yobp, "/Users/ajordan/OneDrive - McGill University/LTBI-Aust-CEA-master/Census/Census 2001/census_rep_2001.csv")
 
-write_xlsx(census_yobp, "/Users/ajordan/OneDrive - McGill University/LTBI-Aust-CEA-master/Census/Census 2001 Year/census_rep_2001_v4.xlsx")
+write_xlsx(census_yobp, "TBI-Prevalence-Canada/Census/Census 2001 Year/census_rep_2001.xlsx")
 
 # Next script census_dist

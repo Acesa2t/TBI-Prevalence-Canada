@@ -9,7 +9,7 @@ library(writexl)
 #library(taRifx)
 
 # Renaming countries weith special symbols in Excel
-census_rep <- read_xlsx("census_rep_2006.xlsx")
+census_rep <- read_xlsx("TBI-Prevalence-Canada/Census/Census 2006/census_rep_2006.xlsx")
 View(census_rep)
 
 colnames(census_rep)
@@ -31,6 +31,6 @@ View(census_colsv2)
 #write_xlsx(census_colsv2, path = "/Users/ajordan/OneDrive - McGill University/LTBI-Aust-CEA-master/Census/Census 2006/census_distributed_v2.xlsx")
 
 saveRDS(census_colsv2, 
-        file = "/Users/ajordan/OneDrive - McGill University/LTBI-Aust-CEA-master/Census/Census 2006/census_distributed_2006.rds")
+        file = "TBI-Prevalence-Canada/Census/Census 2006/census_distributed_2006.rds")
 # Next script census_country1.R
 

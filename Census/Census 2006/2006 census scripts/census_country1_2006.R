@@ -9,7 +9,7 @@ library(readxl)
 
 # Read in Data
 
-census_country <- readRDS("census_distributed_2006.rds")
+census_country <- readRDS("TBI-Prevalence-Canada/Census/Census 2006/census_distributed_2006.rds")
 census_country <- census_country%>%ungroup
 
 unique(census_country$COO)
@@ -36,7 +36,7 @@ View(census_country%>%
        summarise(tot_pop = sum(as.numeric(NUMP))))
 
 saveRDS(census_country, 
-        file = "/Users/ajordan/OneDrive - McGill University/LTBI-Aust-CEA-master/Census/Census 2006/census_iso3_2006.rds")
+        file = "TBI-Prevalence-Canada/Census/Census 2006/census_iso3_2006.rds")
 
 
 cen_tot<-census_country%>%filter(is.na(ISO3)==F)

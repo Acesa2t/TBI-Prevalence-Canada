@@ -7,7 +7,7 @@ library(janitor)
 
 # Taking countries that are not classified to a certain WHO region and providing them with that classifcation
 
-census_nc <- read_xlsx("3census_afr_v2.xlsx")
+census_nc <- read_xlsx("TBI-Prevalence-Canada/Census/Census 2016/census_afr_v2.xlsx")
 head(census_nc)
 
 country_list <- unique(census_nc%>%
@@ -99,6 +99,6 @@ View(census_classified%>%
 
 #write_xlsx(census_classified, path = "/Users/ajordan/OneDrive - McGill University/A TB/Analyses/TB prev measures/Census/census_classified.xlsx")
 
-write.csv(census_classified, file = "/Users/ajordan/OneDrive - McGill University/LTBI-Aust-CEA-master/Census/Census 2016/2016_census_classified_v2.csv", row.names = FALSE)
+write.csv(census_classified, file = "TBI-Prevalence-Canada/Census/Census 2016/2016_census_classified.csv", row.names = FALSE)
 
 # Duplicate csv and use for TBI prevalence script

@@ -8,7 +8,7 @@ library(tidyverse)
 
 # Read in Data
 
-regions <- read_xlsx("jme_regional_classifications.xlsx")
+regions <- read_xlsx("TBI-Prevalence-Canada/Census/jme_regional_classifications.xlsx")
 regions <- regions%>%
   select("Iso3 code","WHO Region2")
 regions
@@ -16,7 +16,7 @@ colnames(regions) <- c("iso3", "WHO_regions")
 View(regions)
 
 # I'm going to remove any regions in this dataset because they don't have iso3 codes
-census_iso3 <- readRDS("census_iso3_2006.rds")
+census_iso3 <- readRDS("TBI-Prevalence-Canada/Census/Census 2006/census_iso3_2006.rds")
 View(census_iso3)
 census_iso3 <- census_iso3%>%
   filter(!is.na(ISO3))%>%
@@ -72,6 +72,6 @@ View(census_regions%>%
 unique(census_regions$COO)
 
 saveRDS(census_regions, 
-        file = "/Users/ajordan/OneDrive - McGill University/LTBI-Aust-CEA-master/Census/Census 2006/census_who_2006.rds")
+        file = "TBI-Prevalence-Canada/Census/Census 2006/census_who_2006.rds")
 
 # Next script census_afr.R

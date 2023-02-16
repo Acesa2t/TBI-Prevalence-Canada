@@ -8,7 +8,7 @@ library(tidyverse)
 
 # Read in Data
 
-regions <- read_xlsx("jme_regional_classifications.xlsx")
+regions <- read_xlsx("TBI-Prevalence-Canada/Census/Census 2016/jme_regional_classifications.xlsx")
 regions <- regions%>%
   select("Iso3 code","WHO Region2")
 regions
@@ -16,7 +16,7 @@ colnames(regions) <- c("iso3", "WHO_regions")
 
 
 # I'm going to remove any regions in this dataset because they don't have iso3 codes
-census_iso3 <- read_xlsx("3census_iso3added.xlsx")
+census_iso3 <- read_xlsx("TBI-Prevalence-Canada/Census/Census 2016/census_iso3added.xlsx")
 census_iso3 <- census_iso3%>%
   filter(!is.na(iso3))%>%
   filter(COO != "Caribbean and Bermuda")
@@ -53,6 +53,6 @@ View(unique(a$iso3))
 
 census_regions%>%summarise(sum(NUMP))
 
-write_xlsx(census_regions, path = "/Users/ajordan/OneDrive - McGill University/LTBI-Aust-CEA-master/Census/Census 2016/3census_whoadded_v2.xlsx")
+write_xlsx(census_regions, path = "TBI-Prevalence-Canada/Census/Census 2016/census_whoadded_v2.xlsx")
 
 # Next script census_afr.R

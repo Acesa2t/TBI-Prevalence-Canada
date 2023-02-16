@@ -10,14 +10,14 @@ library(taRifx)
 # Need to remove indices 273-303 from all of these datasets then try again
 
 # Find number of excel sheets
-num_sheets <- length(excel_sheets("census_rep.xlsx"))
+num_sheets <- length(excel_sheets("TBI-Prevalence-Canada/Census/Census 2016/census_rep.xlsx"))
 
 # Define empty list
 list_calc <- list()
 
 # Add each Excel sheet to the list as a data frame
 for(x in 1:num_sheets){
-  list_calc[[x]] <- read_xlsx("census_rep.xlsx", sheet = x)
+  list_calc[[x]] <- read_xlsx("TBI-Prevalence-Canada/Census/Census 2016/census_rep.xlsx", sheet = x)
 }
 View(list_calc[[5]])
 
@@ -73,7 +73,7 @@ census_colsv2<-census_colsv2%>%group_by(AGE_GROUP,YARP_group,COO)%>%arrange()
 census_colsv2$NUMP<-NULL
 census_colsv2<-dplyr::rename(census_colsv2,NUMP=NUMP_v2)
 
-write.csv(census_colsv2, file = "/Users/ajordan/OneDrive - McGill University/LTBI-Aust-CEA-master/Census/3census_data_clean.csv")
+write.csv(census_colsv2, file = "TBI-Prevalence-Canada/Census/Census 2016/census_data_clean.csv")
 
 # Next script census_extension.R
 
