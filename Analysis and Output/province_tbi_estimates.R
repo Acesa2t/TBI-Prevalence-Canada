@@ -7,7 +7,7 @@ library(spatstat)
 library(tidyverse)
 
 # Read desired provincial file in
-tbi <- readRDS("Analysis and Output/census_other_provinces_v1.rds")
+tbi <- readRDS("Analysis and Output/estimates_other_provinces_v1.rds")
 #View(tbi)
 
 # Ensure that no extra rows made it into analysis
