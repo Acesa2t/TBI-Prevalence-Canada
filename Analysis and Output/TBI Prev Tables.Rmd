@@ -311,24 +311,9 @@ tbi_yarp_agep_tabprep$YARP_BANDS <- factor(tbi_yarp_agep_tabprep$YARP_BANDS,
 
 #View(tbi_yarp_agep_tabprep)
 
-tbi_yarp_agep_med <- tbi_yarp_agep_tabprep%>%
-  select(YARP_BANDS, AGE_BANDS, tbi_prev)%>%
-  pivot_wider(names_from = AGE_BANDS,
-              values_from = tbi_prev)
-
-tbi_yarp_agep_low <-tbi_yarp_agep_tabprep%>%
-  select(YARP_BANDS, AGE_BANDS, tbi_prev_95_low)%>%
-  pivot_wider(names_from = AGE_BANDS,
-              values_from = tbi_prev_95_low)
-
-tbi_yarp_agep_high <- tbi_yarp_agep_tabprep%>%
-  select(YARP_BANDS, AGE_BANDS, tbi_prev_95_high)%>%
-  pivot_wider(names_from = AGE_BANDS,
-              values_from = tbi_prev_95_high)
-
 # Total-YARP by Census Year
 
-tbi_yarp_inc_tabprep_total <- unique(add_pop %>%
+tbi_yarp_tabprep_total <- unique(add_pop %>%
                               filter(NUMP > 0 & CNSY=="2016")%>%
                                 mutate(YARP_BANDS=ifelse(
       YARP >= 2012, "0-4 years since immigration", ifelse(
@@ -341,7 +326,7 @@ tbi_yarp_inc_tabprep_total <- unique(add_pop %>%
     tbi_prev_95_low = round(quantile(Reduce("+",replace_na(LTBP, replace = 0)), 0.025)/sum(NUMP)*100,0),
     tbi_prev_95_high = round(quantile(Reduce("+",replace_na(LTBP, replace = 0)), 0.975)/sum(NUMP)*100,0)))
 
-View(tbi_yarp_inc_tabprep_total)
+View(tbi_yarp_tabprep_total)
 
 # AGEP v YARP
 # tbi_yarp_agep_tabprep_total <- unique(add_pop %>%
@@ -394,10 +379,7 @@ tbi_prev_coo_by_census,
 tbi_age_tabprep,
 tbi_inc_tab,
 tbi_2years_imm,
-tbi_yarp_agep_med,
-tbi_yarp_agep_low,
-tbi_yarp_agep_high,
-tbi_yarp_inc_tabprep_total,
+tbi_yarp_tabprep_total,
                     tbi_age_inc_tabprep)
 
 write_xlsx(output_list, "Analysis and Outputs/tbi_prevalence_tables.xlsx")
