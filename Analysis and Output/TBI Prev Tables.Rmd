@@ -285,19 +285,6 @@ tbi_2years_imm <- unique(add_pop %>%
     
 View(tbi_2years_imm)
   
-
-# By incidence in COO
-tbi_2years_imm_inc_band <- unique(add_pop %>%
-                                 filter(NUMP > 0 & !is.na(NUMP))%>%
-                                filter(YARP > 2014)%>%
-                                filter(CNSY==2016)%>%
-    group_by(inc_band_per100k)%>%
-    summarise(
-    tbi_prev = round(median(Reduce("+",replace_na(LTBP, replace = 0)))/sum(NUMP)*100,0),
-    tbi_prev_95_low = round(quantile(Reduce("+",replace_na(LTBP, replace = 0)), 0.025)/sum(NUMP)*100,0),
-    tbi_prev_95_high = round(quantile(Reduce("+",replace_na(LTBP, replace = 0)), 0.975)/sum(NUMP)*100,0)))
-    
-View(tbi_2years_imm_inc_band)
 ```
 
 YARP Increments and Age During Census Year
@@ -407,7 +394,6 @@ tbi_prev_coo_by_census,
 tbi_age_tabprep,
 tbi_inc_tab,
 tbi_2years_imm,
-tbi_2years_imm_inc_band,
 tbi_yarp_agep_med,
 tbi_yarp_agep_low,
 tbi_yarp_agep_high,
