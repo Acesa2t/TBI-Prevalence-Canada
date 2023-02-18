@@ -398,11 +398,11 @@ View(tbi_age_inc_tabprep)
 
 Put into list to export to Excel for re-naming columns and formatting
 ```{r}
+library(writexl)
 output_list <- list(summary_aarp,
                     summary_agep,
                     overall_prevalence,
                     pop_aarp_by_census,
-                    pop_coo_by_census,
 tbi_prev_coo_by_census,
 tbi_age_tabprep,
 tbi_inc_tab,
