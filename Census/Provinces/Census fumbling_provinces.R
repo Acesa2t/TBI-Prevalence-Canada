@@ -1,3 +1,5 @@
+# This is script #1 in a set of scripts that re-format provincial-level census data acquired from the 2016 Canadian census
+
 library(tidyverse)
 library(readxl)
 library(janitor)
