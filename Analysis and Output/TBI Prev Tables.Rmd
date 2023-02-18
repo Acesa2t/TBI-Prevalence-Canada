@@ -396,7 +396,7 @@ View(tbi_age_inc_tabprep)
 ```
 
 
-Put into list to export to Excel for re-naming columns and formatting
+Put into list to export to Excel for re-naming columns and preliminary formatting. Since data may be reused, final formats should be done in Word.
 ```{r}
 library(writexl)
 output_list <- list(summary_aarp,
