@@ -264,7 +264,7 @@ Age during Census Year-Proportion Living in Canada and Prevalence per Census Yea
     summarise(proportion_pop=round((sum(NUMP)/tot_pop)*100, 2),
                   tbi_prev = round(median(Reduce("+",replace_na(LTBP, replace = 0)))/sum(NUMP)*100,0),
     tbi_prev_95_low = round(quantile(Reduce("+",replace_na(LTBP, replace = 0)), 0.025)/sum(NUMP)*100,0),
-    tbi_prev_95_high = round(quantile(Reduce("+",replace_na(LTBP, replace = 0)), 0.975)/sum(NUMP)*100,0))
+    tbi_prev_95_high = round(quantile(Reduce("+",replace_na(LTBP, replace = 0)), 0.975)/sum(NUMP)*100,0)))
 
 View(tbi_age_tabprep)
   
@@ -277,7 +277,7 @@ Prevalence among those who Immigrated in last 2 years-Total and by TB Disease In
 tbi_2years_imm <- unique(add_pop %>%
                                  filter(NUMP > 0 & !is.na(NUMP))%>%
                                 filter(YARP > 2014)%>%
-                                filter(CNSY==2016)
+                                filter(CNSY==2016)%>%
     summarise(
     tbi_prev = round(median(Reduce("+",replace_na(LTBP, replace = 0)))/sum(NUMP)*100,0),
     tbi_prev_95_low = round(quantile(Reduce("+",replace_na(LTBP, replace = 0)), 0.025)/sum(NUMP)*100,0),
