@@ -414,6 +414,6 @@ tbi_yarp_agep_high,
 tbi_yarp_inc_tabprep_total,
                     tbi_age_inc_tabprep)
 
-write_xlsx(output_list, "/Users/ajordan/Library/CloudStorage/OneDrive-McGillUniversity/A TB/Project Writing/TBI Prev Pub/tbi_prevalence_tables.xlsx")
+write_xlsx(output_list, "Analysis and Outputs/tbi_prevalence_tables.xlsx")
 ```
 
