@@ -400,7 +400,7 @@ Put into list to export to Excel for re-naming columns and formatting
 ```{r}
 output_list <- list(summary_aarp,
                     summary_agep,
-                    overall_prevalence
+                    overall_prevalence,
                     pop_aarp_by_census,
                     pop_coo_by_census,
 tbi_prev_coo_by_census,
